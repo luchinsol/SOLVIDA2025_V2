@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -19,9 +23,13 @@ class _RegisterState extends State<Register> {
   TextEditingController _controllerpass = TextEditingController();
   TextEditingController _controllernombres = TextEditingController();
   TextEditingController _controllertelefono = TextEditingController();
-  TextEditingController _controlleruser = TextEditingController();
+  TextEditingController _controllerapellidos = TextEditingController();
 
-  Future<void> _registermanual(String email, String pass) async {
+  String apiGw = dotenv.env['MICRO_URL'] ?? '';
+  final _formKey = GlobalKey<FormState>();
+
+  Future<void> _registermanual(String nombres, String apellidos,
+      String telefono, String email, String pass) async {
     showDialog(
       context: context,
       barrierDismissible: false, // Evita que el usuario cierre el diálogo
@@ -40,9 +48,101 @@ class _RegisterState extends State<Register> {
         email: email,
         password: pass,
       );
-      print("Login exitoso: ${userCred.user!.uid}");
-      if (mounted) Navigator.of(context).pop(); // Cierra el diálogo
-      context.go('/');
+
+      var res = await http.post(Uri.parse(apiGw + "/register_micro_cliente"),
+          body: json.encode({
+            "user": {
+              "rol_id": 4,
+              "email": email,
+              "telefono": telefono,
+              "firebase_uid": userCred.user!.uid
+            },
+            "cliente": {
+              "nombres": nombres,
+              "apellidos": apellidos,
+              "foto_cliente": "na"
+            }
+          }),
+          headers: {"Content-type": "application/json"});
+      if (res.statusCode == 201) {
+        // var data = json.decode(res.body);
+
+        if (mounted) Navigator.of(context).pop();
+        print("Registro manual exitoso");
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
+              child: Container(
+                height: 1.sh / 2.3,
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        height: 120.w,
+                        width: 120.w,
+                        decoration: BoxDecoration(
+                            //color: Colors.amber,
+                            image: DecorationImage(
+                                fit: BoxFit.contain,
+                                image: AssetImage(
+                                    'lib/assets/imagenes/felicitaciones.png'))),
+                      ),
+                      /* Icon(
+                        Icons.check_circle_outline,
+                        size: 60.sp,
+                        color: Colors.lightGreen,
+                      ),*/
+                      SizedBox(height: 20),
+                      Text(
+                        "¡Felicitaciones!",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          color: Color.fromRGBO(1, 37, 255, 1),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20.sp,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      Text(
+                        "Registro completado satisfactoriamente",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          fontWeight: FontWeight.w300,
+                          fontSize: 20.sp,
+                        ),
+                      ),
+                      SizedBox(height: 30.h),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side:
+                              BorderSide(color: Color.fromRGBO(1, 37, 255, 1)),
+                        ),
+                        child: Text(
+                          "Continuar",
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.w500,
+                            color: Color.fromRGBO(1, 37, 255, 1),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      } else {}
     } catch (e) {
       print("Error de registro: $e");
       if (mounted) Navigator.of(context).pop();
@@ -52,9 +152,41 @@ class _RegisterState extends State<Register> {
         errorMessage = e.message ?? errorMessage;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Text(
+              "Algo falló!",
+              style: GoogleFonts.manrope(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              "Este e-mail ya está en uso por otra cuenta. Intente de nuevo.",
+              style: GoogleFonts.manrope(fontWeight: FontWeight.w500),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  "Cerrar",
+                  style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w500,
+                      color: Color.fromRGBO(1, 37, 255, 1)),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cierra el diálogo
+                },
+              ),
+            ],
+          );
+        },
       );
+
+      /*ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );*/
     }
   }
 
@@ -147,137 +279,229 @@ class _RegisterState extends State<Register> {
                 height: 24.h,
               ),
               Form(
+                  key: _formKey,
                   child: Column(
-                children: [
-                  TextFormField(
-                    //controller: _password,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.abc),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Nombres",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
-                  ),
-                  SizedBox(
-                    height: 19.h,
-                  ),
-                  TextFormField(
-                    controller: _controlleremail,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Email",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
-                  ),
-                  SizedBox(
-                    height: 19.h,
-                  ),
-                  TextFormField(
-                    //controller: _password,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.phone_android_outlined),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Teléfono",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
-                  ),
-                  SizedBox(
-                    height: 19.h,
-                  ),
-                  TextFormField(
-                    //controller: _password,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Usuario",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
-                  ),
-                  SizedBox(
-                    height: 19.h,
-                  ),
-                  TextFormField(
-                    controller: _controllerpass,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Contraseña",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
-                  ),
-                  SizedBox(
-                    height: 19.h,
-                  ),
-                ],
-              )),
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.person_outlined),
+                          Container(
+                            width: 1.sw - 100.w,
+                            child: TextFormField(
+                              controller: _controllernombres,
+                              style: GoogleFonts.manrope(
+                                  fontSize: 11.sp,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                hintText: 'Ingresa tu nombre',
+                                hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                                // prefixIcon: Icon(Icons.abc),
+                                border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(15)),
+                                labelText: "Nombres",
+                                labelStyle: GoogleFonts.manrope(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.sp),
+                                filled: true,
+                                fillColor: Color.fromRGBO(246, 246, 246, 1),
+                                //errorText: _errorText,
+                                /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                              ),
+                              // onChanged: _validateUsername,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 19.h,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.abc),
+                          Container(
+                            width: 1.sw - 100.w,
+                            child: TextFormField(
+                              controller: _controllerapellidos,
+                              style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.sp,
+                                  color: Colors.black),
+                              decoration: InputDecoration(
+                                hintText: 'Ingresa tus apellidos',
+                                hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                                // prefixIcon: Icon(Icons.abc),
+                                border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(15)),
+                                labelText: "Apellidos",
+                                labelStyle: GoogleFonts.manrope(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.sp),
+                                filled: true,
+                                fillColor: Color.fromRGBO(246, 246, 246, 1),
+                                //errorText: _errorText,
+                                /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                              ),
+                              // onChanged: _validateUsername,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 19.h,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.phone_android_outlined),
+                          Container(
+                            width: 1.sw - 100.w,
+                            child: TextFormField(
+                              controller: _controllertelefono,
+                              style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.sp,
+                                  color: Colors.black),
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                hintText: 'Ingresa tu teléfono ',
+                                hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                                // prefixIcon: Icon(Icons.phone_android_outlined),
+                                border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(15)),
+                                labelText: "Teléfono",
+                                labelStyle: GoogleFonts.manrope(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.sp),
+                                filled: true,
+                                fillColor: Color.fromRGBO(246, 246, 246, 1),
+                                //errorText: _errorText,
+                                /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                              ),
+                              // onChanged: _validateUsername,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 19.h,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.email_outlined),
+                          Container(
+                            width: 1.sw - 100.w,
+                            child: TextFormField(
+                              controller: _controlleremail,
+                              style: GoogleFonts.manrope(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                hintText: 'Ingresa un correo válido',
+                                hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+
+                                border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(15)),
+                                labelText: "E-mail",
+                                labelStyle: GoogleFonts.manrope(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.sp),
+                                filled: true,
+                                fillColor: Color.fromRGBO(246, 246, 246, 1),
+                                //errorText: _errorText,
+                                /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                              ),
+                              // onChanged: _validateUsername,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 19.h,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.lock_outline),
+                          Container(
+                            width: 1.sw - 100.w,
+                            child: TextFormField(
+                              controller: _controllerpass,
+                              style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.sp,
+                                  color: Colors.black),
+                              decoration: InputDecoration(
+                                hintText:
+                                    'Ingresa una contraseña (8 caracteres min.)',
+                                hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                                //prefixIcon: Icon(Icons.lock_outline),
+                                border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(15)),
+                                labelText: "Contraseña",
+                                labelStyle: GoogleFonts.manrope(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.sp),
+                                filled: true,
+                                fillColor: Color.fromRGBO(246, 246, 246, 1),
+                                //errorText: _errorText,
+                                /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                              ),
+                              // onChanged: _validateUsername,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 19.h,
+                      ),
+                    ],
+                  )),
               Container(
                 width: 1.sw,
                 height: 50.h,
                 child: ElevatedButton(
                     onPressed: () {
+                      // LLAMAMOS A LA FUNCIÓN
                       _registermanual(
-                          _controlleremail.text, _controllerpass.text);
+                          _controllernombres.text,
+                          _controllerapellidos.text,
+                          _controllertelefono.text,
+                          _controlleremail.text,
+                          _controllerpass.text);
+
+                      // LIMPIAR FORMULARIO
+                      /*_formKey.currentState!.reset();
+                      _controllerapellidos.clear();
+                      _controllernombres.clear();
+                      _controllertelefono.clear();
+                      _controlleremail.clear();
+                      _controllerpass.clear();*/
                     },
                     style: ElevatedButton.styleFrom(
                         shadowColor: const Color.fromARGB(255, 116, 116, 116),

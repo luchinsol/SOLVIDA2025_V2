@@ -72,33 +72,33 @@ class _LoginState extends State<Login> {
     }
   }
 
-  // Modifica tu método signinWithGoogle
   Future<void> signinWithGoogle() async {
     try {
+      if (!mounted) return; // Verifica que el widget siga activo
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => Center(
-            child: CircularProgressIndicator(
-          color: Colors.white,
-        )),
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       );
-      // Forzar selección de cuenta cada vez
+
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email'],
-        signInOption: SignInOption.standard, // Esto muestra el selector siempre
+        signInOption: SignInOption.standard,
       );
 
-      // Cerrar cualquier sesión previa de Google
       await googleSignIn.signOut();
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      Navigator.of(context, rootNavigator: true).pop(); // Cierra el dialog
 
-      if (googleUser == null) return; // El usuario canceló el login
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
 
-      GoogleSignInAuthentication? googleAuth = await googleUser.authentication;
+      if (googleUser == null) return;
+
+      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -107,22 +107,18 @@ class _LoginState extends State<Login> {
 
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      print("........../////.......GOOGLE");
-      print(user.user?.phoneNumber);
-      print(user.user?.photoURL);
-      print(user.user?.email);
-      print(user.user?.displayName);
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString('fotito', user.user!.photoURL!);
+      prefs.setString('fotito', user.user!.photoURL ?? '');
 
+      if (!mounted) return;
       context.go('/previa');
-
-      // Navegar a la página principal después del login exitoso
     } catch (e) {
-      print("Error en Google SignIn: $e");
-      // Mostrar error al usuario
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // Cierra el dialog si hubo error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al iniciar sesión con Google")),
+        const SnackBar(content: Text("Error al iniciar sesión con Google")),
       );
     }
   }
@@ -178,54 +174,74 @@ class _LoginState extends State<Login> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            TextFormField(
-                              controller: _username,
-                              decoration: InputDecoration(
-                                /*contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 20.sp, vertical: 16.sp),*/
-                                prefixIcon: Icon(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(
                                   _errorText != null
                                       ? Icons.error
                                       : Icons.person_2_outlined,
                                 ),
-                                labelText: "Email o usuario",
-                                labelStyle: GoogleFonts.manrope(
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                                filled: true,
-                                fillColor: Color.fromRGBO(
-                                    246, 246, 246, 1), // Fondo blanco
-                                border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius: BorderRadius.circular(15)),
-                              ),
+                                Container(
+                                  width: 1.sw - 100.w,
+                                  child: TextFormField(
+                                    controller: _username,
+                                    decoration: InputDecoration(
+                                      /*contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 20.sp, vertical: 16.sp),*/
+
+                                      labelText: "Email o usuario",
+                                      labelStyle: GoogleFonts.manrope(
+                                          fontSize: 11.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black),
+                                      filled: true,
+                                      fillColor: Color.fromRGBO(
+                                          246, 246, 246, 1), // Fondo blanco
+                                      border: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             SizedBox(
                               height: 19.h,
                             ),
-                            TextFormField(
-                              controller: _password,
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(_errorText != null
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(_errorText != null
                                     ? Icons.error
                                     : Icons.lock_outline),
-                                border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius: BorderRadius.circular(15)),
-                                labelText: "Contraseña",
-                                labelStyle: GoogleFonts.manrope(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11.sp),
-                                filled: true,
-                                fillColor: Color.fromRGBO(246, 246, 246, 1),
-                                errorText: _errorText,
-                                /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                              ),
-                              onChanged: _validateUsername,
+                                Container(
+                                  width: 1.sw - 100.w,
+                                  child: TextFormField(
+                                    controller: _password,
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      labelText: "Contraseña",
+                                      labelStyle: GoogleFonts.manrope(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11.sp),
+                                      filled: true,
+                                      fillColor:
+                                          Color.fromRGBO(246, 246, 246, 1),
+                                      errorText: _errorText,
+                                      /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                                    ),
+                                    onChanged: _validateUsername,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         )),
@@ -236,7 +252,9 @@ class _LoginState extends State<Login> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.push('/recovery');
+                          },
                           child: Text(
                             "¿ Olvidaste tu contraseña ?",
                             style: GoogleFonts.manrope(

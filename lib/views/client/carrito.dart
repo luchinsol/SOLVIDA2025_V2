@@ -341,16 +341,7 @@ class _CarritoState extends State<Carrito> {
                           width: 95.w,
                           height: 65.h,
                           child: ElevatedButton(
-                              onPressed: () async {
-                                final Uri url = Uri.parse(
-                                    'https://yape.com.pe/qr/964269494');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url,
-                                      mode: LaunchMode.externalApplication);
-                                } else {
-                                  throw 'No se pudo abrir Yape';
-                                }
-                              },
+                              onPressed: () async {},
                               style: ElevatedButton.styleFrom(
                                   side: BorderSide(
                                       width: 2,

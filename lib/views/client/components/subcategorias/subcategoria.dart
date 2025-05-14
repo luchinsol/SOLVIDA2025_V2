@@ -5,12 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 Widget subcategoria() {
   return Container(
-      height: 194.h,
-      //color: Colors.grey,
+      height: 200.h,
+      // color: const Color.fromARGB(255, 191, 34, 34),
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: 4,
+          itemCount: 3,
           itemBuilder: (context, index) {
-            return tarjeta_sub(context, 194, 128, 19, 100, 100);
+            return tarjeta_sub(context, 194, 133, 19, 100, 100);
           }));
 }
