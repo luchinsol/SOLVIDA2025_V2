@@ -17,9 +17,9 @@ Widget tarjeta_sub(BuildContext context, double alto, double ancho,
                 BoxShadow(
                   color:
                       const Color.fromARGB(255, 202, 201, 201).withOpacity(0.3),
-                  spreadRadius: 5,
-                  blurRadius: 5,
-                  offset: Offset(0, 3),
+                  spreadRadius: 0,
+                  blurRadius: 6,
+                  offset: Offset(0, 4),
                 ),
               ],
               //color: Color.fromRGBO(1, 37, 255, 1),

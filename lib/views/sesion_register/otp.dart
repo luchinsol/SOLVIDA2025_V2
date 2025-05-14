@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +16,8 @@ class _OtpState extends State<Otp> {
   void initState() {
     super.initState();
   }
+
+  TextEditingController _controlleremail = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,31 +51,42 @@ class _OtpState extends State<Otp> {
               Form(
                   child: Column(
                 children: [
-                  TextFormField(
-                    //controller: _password,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                      labelText: "Email (OTP)",
-                      labelStyle: GoogleFonts.manrope(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      //errorText: _errorText,
-                      /*helperText: _errorText == null
-                                    ? "Puedes usar letras y números"
-                                    : null,*/
-                    ),
-                    // onChanged: _validateUsername,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.email_outlined),
+                      Container(
+                        width: 1.sw - 100.w,
+                        child: TextFormField(
+                          controller: _controlleremail,
+                          decoration: InputDecoration(
+                            // prefixIcon: Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(15)),
+                            labelText: "Email",
+                            hintText: "Ingresa tu e-mail",
+                            hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                            labelStyle: GoogleFonts.manrope(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11.sp),
+                            filled: true,
+                            fillColor: Color.fromRGBO(246, 246, 246, 1),
+                            //errorText: _errorText,
+                            /*helperText: _errorText == null
+                                          ? "Puedes usar letras y números"
+                                          : null,*/
+                          ),
+                          // onChanged: _validateUsername,
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(
                     height: 29.h,
                   ),
-                  Row(
+                  /*  Row(
                     children: [
                       Expanded(
                         child: Padding(
@@ -129,7 +143,7 @@ class _OtpState extends State<Otp> {
                   ),
                   SizedBox(
                     height: 19.h,
-                  ),
+                  ),*/
                   SizedBox(
                     height: 19.h,
                   ),
@@ -139,7 +153,98 @@ class _OtpState extends State<Otp> {
                 width: 1.sw,
                 height: 50.h,
                 child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible:
+                            false, // Evita que el usuario cierre el diálogo
+                        builder: (context) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                      );
+                      await FirebaseAuth.instance.sendPasswordResetEmail(
+                        email: _controlleremail.text.trim(),
+                      );
+                      if (mounted) Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)),
+                            child: Container(
+                              height: 1.sh / 2.3,
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      height: 120.w,
+                                      width: 120.w,
+                                      decoration: BoxDecoration(
+                                          //color: Colors.amber,
+                                          image: DecorationImage(
+                                              fit: BoxFit.contain,
+                                              image: AssetImage(
+                                                  'lib/assets/imagenes/avion.png'))),
+                                    ),
+                                    /* Icon(
+                        Icons.check_circle_outline,
+                        size: 60.sp,
+                        color: Colors.lightGreen,
+                      ),*/
+                                    SizedBox(height: 20),
+                                    Text(
+                                      "¡Enviado!",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        color: Color.fromRGBO(1, 37, 255, 1),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 20.sp,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20.h),
+                                    Text(
+                                      "Revisa tu e-mail y sigue las instrucciones del enlace.",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        fontWeight: FontWeight.w300,
+                                        fontSize: 20.sp,
+                                      ),
+                                    ),
+                                    SizedBox(height: 30.h),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        side: BorderSide(
+                                            color:
+                                                Color.fromRGBO(1, 37, 255, 1)),
+                                      ),
+                                      child: Text(
+                                        "Continuar",
+                                        style: GoogleFonts.manrope(
+                                          fontWeight: FontWeight.w500,
+                                          color: Color.fromRGBO(1, 37, 255, 1),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                         shadowColor: const Color.fromARGB(255, 116, 116, 116),
                         backgroundColor: Color.fromRGBO(1, 37, 255, 1),

@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Widget curva2() {
+Widget curva2({required VoidCallback onVolverArriba}) {
   return ClipPath(
     clipper: MyCustomClipper2(),
     child: Container(
       height: 250.h,
       decoration: BoxDecoration(
-          image: DecorationImage(
-              fit: BoxFit.cover,
-              image: AssetImage('lib/assets/imagenes/azul.jpg')),
+
           // borderRadius: BorderRadius.circular(20.r),
           color: const Color.fromRGBO(1, 37, 255, 1)),
       child: Padding(
@@ -20,12 +18,19 @@ Widget curva2() {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Container(
-              width: 141.w,
-              height: 101.h,
-              //color: Colors.white,
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage('lib/assets/imagenes/moto.png'))),
+              width: 133.w,
+              height: 36.h,
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(20.r)),
+              child: ElevatedButton(
+                  onPressed: onVolverArriba,
+                  child: Text(
+                    "Ir al principio",
+                    style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14.sp,
+                        color: Color.fromRGBO(1, 37, 255, 1)),
+                  )),
             ),
             Container(
               width: 160.w,
@@ -34,31 +39,33 @@ Widget curva2() {
                   //color: Colors.white
                   ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    "Delivery",
+                    "Cuidemos el planeta",
                     style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 26.sp,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 15.sp,
                         color: Colors.white),
                   ),
                   Text(
-                    "gratis!",
+                    "Recicla tus bidones",
                     style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 26.sp,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 12.sp,
                         color: Colors.white),
                   ),
                   SizedBox(
                     height: 7.h,
                   ),
-                  Text(
-                    "Horario 8am - 4pm",
-                    style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14.sp,
-                        color: Colors.white),
+                  Container(
+                    width: 60.w,
+                    height: 60.w,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                            image: AssetImage('lib/assets/imagenes/mundo.png')),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(50.r)),
                   )
                 ],
               ),
