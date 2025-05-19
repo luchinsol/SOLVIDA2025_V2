@@ -1,0 +1,36 @@
+import 'package:app2025v2/models/producto_model.dart';
+import 'package:app2025v2/models/promocion_model.dart';
+
+class SubcategoriaModel {
+  int id;
+  String nombre;
+  String icono;
+  String fecha_inicio;
+  String fecha_fin;
+  List<ProductoModel> productos;
+  List<PromocionModel> promocion;
+  // CONSTRUCTOR
+  SubcategoriaModel(
+      {required this.id,
+      required this.nombre,
+      required this.icono,
+      required this.fecha_inicio,
+      required this.fecha_fin,
+      required this.productos,
+      required this.promocion});
+
+  factory SubcategoriaModel.fromJson(Map<String, dynamic> json) {
+    return SubcategoriaModel(
+        id: json['id'],
+        nombre: json['nombre'],
+        icono: json['icono'],
+        fecha_inicio: json['fecha_inicio'],
+        fecha_fin: json['fecha_fin'],
+        productos: (json['productos'] as List)
+            .map((item) => ProductoModel.fromJson(item))
+            .toList(),
+        promocion: (json['promociones'] as List)
+            .map((item) => PromocionModel.fromJson(item))
+            .toList());
+  }
+}

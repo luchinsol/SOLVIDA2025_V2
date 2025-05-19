@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:app2025v2/models/subcategoria_model.dart';
+import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/views/client/components/categorias.dart';
@@ -116,6 +118,14 @@ class _Inicio2State extends State<Inicio2> {
       }
     });
 
+    // Llama una vez para obtener los eventos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<CategoriaInicioProvider>(context, listen: false)
+            .getCategoriaSubcategoria(null);
+      }
+    });
+
     Future.microtask(() {
       Provider.of<CategoriaProvider>(context, listen: false).getCategorias();
     });
@@ -142,7 +152,9 @@ class _Inicio2State extends State<Inicio2> {
           _bannerIndex = 0;
         }
 
-        _bannerController.jumpToPage(_bannerIndex);
+        if (_bannerController.hasClients) {
+          _bannerController.jumpToPage(_bannerIndex);
+        }
       });
     });
   }
@@ -152,6 +164,9 @@ class _Inicio2State extends State<Inicio2> {
     final eventos = context.watch<EventoProvider>().todoseventos;
     // Aquí construyes tu vista
     final categorias = context.watch<CategoriaProvider>().allcategorias;
+    final categoriaInicio =
+        context.watch<CategoriaInicioProvider>().allcategoria_subcategoria;
+    //String nombre
 
     // ⛔ Asegurarse de que hay eventos antes de seguir
     if (eventos.isEmpty) {
@@ -320,7 +335,7 @@ class _Inicio2State extends State<Inicio2> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: categorias.map((item) {
-                          return categoria(item.nombre, item.nombre);
+                          return categoria(context, item);
                         }).toList(),
                       ),
                     ),
@@ -375,100 +390,120 @@ class _Inicio2State extends State<Inicio2> {
                       height: 15.h,
                     ),
 
-                    // SUBCATEGORIAS
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "¿ Te vas de viaje ?",
-                          style: GoogleFonts.manrope(
-                            fontSize: 16.sp,
+                    // SUBCATEGORIA 1
+                    for (int i = 0;
+                        i < (categoriaInicio?.subcategorias.length ?? 0);
+                        i++) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            categoriaInicio!.subcategorias[i].nombre, // nombre
+                            style: GoogleFonts.manrope(
+                              fontSize: 16.sp,
+                            ),
                           ),
-                        ),
-                        TextButton(
-                            onPressed: () {
-                              context.push('/subcategoria');
-                            },
-                            child: Text(
-                              "ver más",
-                              style: GoogleFonts.manrope(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade600),
-                            ))
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
+                          TextButton(
+                              onPressed: () {
+                                categoriaInicio.subcategorias[i];
+                                print("-----------");
+                                print("${categoriaInicio.nombre}");
+                                print("${categoriaInicio.subcategorias[i].id}");
+                                print(
+                                    "${categoriaInicio.subcategorias[i].nombre}");
+                                print("-------------");
+                                // context.push('/subcategoria');
+                                // se llama a un provider , donde se le pasa el
+                                // id de la subcategori: localhost:20/subacta/{id}
+                              },
+                              child: Text(
+                                "ver más",
+                                style: GoogleFonts.manrope(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade600),
+                              ))
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10.h,
+                      ), // Subcategoria 1
+                      subcategoria(categoriaInicio!.subcategorias[i]),
 
-                    // Subcategoria 1
-                    subcategoria(),
+                      if (i == 0) ...[
+                        SizedBox(
+                          height: 50.h,
+                        ),
+
+                        //CONTAINER DE TEMPERATURA
+
+                        Stack(
+                          clipBehavior: Clip
+                              .none, // ¡Esto es clave para que el vaso se salga!
+                          children: [
+                            // Container base (el rojo)
+                            Container(
+                              width: 1.sw,
+                              height: 140,
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('21°C',
+                                      style: GoogleFonts.manrope(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 40,
+                                          color: Colors.white)),
+                                  Text('¡Qué calor!',
+                                      style: GoogleFonts.manrope(
+                                          fontSize: 20.sp,
+                                          color: Colors.white)),
+                                  Text('Mantente siempre hidratado',
+                                      style: GoogleFonts.manrope(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14.sp,
+                                          color: Colors.white70)),
+                                ],
+                              ),
+                            ),
+
+                            // Vaso que se sale del Container
+                            Positioned(
+                              right: 15, // Ajusta este valor según tu diseño
+                              top:
+                                  -30, // Puedes moverlo también hacia arriba si quieres
+                              child: Container(
+                                height: 200.w,
+                                width: 140.h,
+                                decoration: BoxDecoration(
+                                    //color: Colors.grey,
+                                    image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage(
+                                            'lib/assets/imagenes/vaso.png'))),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(
+                          height: 28.h,
+                        ),
+                      ]
+                    ], // FIN DEL FOR
+
                     SizedBox(
                       height: 23.h,
                     ),
-                    subcategoria(),
+                    // subcategoria(),
 
-                    SizedBox(
-                      height: 50.h,
-                    ),
-
-                    Stack(
-                      clipBehavior: Clip
-                          .none, // ¡Esto es clave para que el vaso se salga!
-                      children: [
-                        // Container base (el rojo)
-                        Container(
-                          width: 1.sw,
-                          height: 140,
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('21°C',
-                                  style: GoogleFonts.manrope(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 40,
-                                      color: Colors.white)),
-                              Text('¡Qué calor!',
-                                  style: GoogleFonts.manrope(
-                                      fontSize: 20.sp, color: Colors.white)),
-                              Text('Mantente siempre hidratado',
-                                  style: GoogleFonts.manrope(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14.sp,
-                                      color: Colors.white70)),
-                            ],
-                          ),
-                        ),
-
-                        // Vaso que se sale del Container
-                        Positioned(
-                          right: 15, // Ajusta este valor según tu diseño
-                          top:
-                              -30, // Puedes moverlo también hacia arriba si quieres
-                          child: Container(
-                            height: 200.w,
-                            width: 140.h,
-                            decoration: BoxDecoration(
-                                //color: Colors.grey,
-                                image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: AssetImage(
-                                        'lib/assets/imagenes/vaso.png'))),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(
-                      height: 28.h,
-                    ),
+                    // SUBCATEGORIA 2
+                    /*
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -504,7 +539,7 @@ class _Inicio2State extends State<Inicio2> {
                     subcategoria(),
                     SizedBox(
                       height: 15.h,
-                    ),
+                    ),*/
 
                     // NOVEDADES
                     Text(

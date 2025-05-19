@@ -6,10 +6,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class CategoriaProvider extends ChangeNotifier {
+  // ATRIBUTO
   String microurl = dotenv.env['MICRO_URL'] ?? '';
   List<CategoriaModel> _categorias = [];
+
+  // MÉTODOS
   List<CategoriaModel> get allcategorias => _categorias;
 
+// MÉTODO - LLAMADA DE API
   Future<void> getCategorias() async {
     try {
       var res = await http.get(Uri.parse(microurl + '/categoria'));

@@ -138,15 +138,22 @@ class _CarritoState extends State<Carrito> {
               SizedBox(
                 height: 18.h,
               ),
-              Container(
+              /* Container(
                 height: 200,
                 child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
                     itemBuilder: (context, index) {
-                      return tarjeta_sub(context, 194, 128, 10, 100, 100);
+                      return tarjeta_sub(
+                        context: context,
+                        alto: 194,
+                        ancho: 133,
+                        separacion_tarjeta: 19,
+                        ima_alto: 100,
+                        ima_ancho: 100,
+                        item: producto);
                     }),
-              ),
+              ),*/
               SizedBox(
                 height: 18.h,
               ),

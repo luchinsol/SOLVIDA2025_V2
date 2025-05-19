@@ -1,5 +1,7 @@
+import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
+import 'package:app2025v2/providers/generico_provider.dart';
 import 'package:app2025v2/views/barra/barra.dart';
 import 'package:app2025v2/views/client/carrito.dart';
 import 'package:app2025v2/views/client/circular.dart';
@@ -32,7 +34,9 @@ Future<void> main() async {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => EventoProvider()),
-      ChangeNotifierProvider(create: (context) => CategoriaProvider())
+      ChangeNotifierProvider(create: (context) => CategoriaProvider()),
+      ChangeNotifierProvider(create: (context) => CategoriaInicioProvider()),
+      ChangeNotifierProvider(create: (context) => GenericoProvider()),
     ],
     child: const MyApp(),
   ));

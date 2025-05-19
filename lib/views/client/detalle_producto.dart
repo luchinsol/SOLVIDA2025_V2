@@ -1,3 +1,5 @@
+import 'package:app2025v2/models/generico_model.dart';
+import 'package:app2025v2/providers/generico_provider.dart';
 import 'package:app2025v2/views/client/components/opiniones.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class DetalleProducto extends StatefulWidget {
   const DetalleProducto({Key? key}) : super(key: key);
@@ -18,6 +21,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
 
   @override
   Widget build(BuildContext context) {
+    final productogenerico = context.watch<GenericoProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -41,7 +45,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Lo más vendido',
+              '${productogenerico.allGenericos?.nombre_sub}',
               style: GoogleFonts.manrope(fontSize: 16.sp),
             ),
             badges.Badge(
@@ -86,7 +90,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w200, fontSize: 50.sp)),
                 TextSpan(
-                    text: "Smart fresh",
+                    text: "${productogenerico.allGenericos?.nombre}",
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.bold, fontSize: 50.sp))
               ])),
@@ -131,11 +135,12 @@ class _DetalleProductoState extends State<DetalleProducto> {
                 // width: 327.w,
                 height: 221.h,
                 decoration: BoxDecoration(
-                    color: Colors.amber,
+                    //color: Colors.amber,
                     image: DecorationImage(
-                        fit: BoxFit.fill,
-                        image:
-                            AssetImage('lib/assets/imagenes/setecientos.png'))),
+                  fit: BoxFit.contain,
+                  image: NetworkImage(
+                      '${productogenerico.allGenericos?.fotos[0]}'),
+                )),
               ),
               SizedBox(
                 height: 15.sp,
@@ -147,7 +152,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                   children: [
                     Text.rich(TextSpan(children: [
                       TextSpan(
-                          text: 'S/.20.0/',
+                          text: 'S/.${productogenerico.allGenericos?.precio}/',
                           style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -167,7 +172,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           borderRadius: BorderRadius.circular(20.r)),
                       child: Center(
                         child: Text(
-                          "S/.10.0 DCTO",
+                          "S/.${productogenerico.allGenericos?.descuento} DCTO",
                           style: GoogleFonts.manrope(
                               color: Colors.white, fontSize: 15.sp),
                         ),
@@ -334,10 +339,10 @@ class _DetalleProductoState extends State<DetalleProducto> {
                       //height: 24.h,
                       width: 54.w,
                       child: Text(
-                        "4.5",
+                        "${productogenerico.allGenericos?.valoracion ?? 4.4}",
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
-                          fontSize: 36.sp,
+                          fontSize: 34.sp,
                         ),
                       ),
                     ),

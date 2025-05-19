@@ -1,10 +1,22 @@
+import 'package:app2025v2/models/producto_model.dart';
+import 'package:app2025v2/models/promocion_model.dart';
+import 'package:app2025v2/providers/generico_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-Widget tarjeta_sub(BuildContext context, double alto, double ancho,
-    double separacion_tarjeta, double ima_alto, double ima_ancho) {
+Widget tarjeta_sub({
+  required BuildContext context,
+  required String sub_nombre,
+  required double alto,
+  required double ancho,
+  required double separacion_tarjeta,
+  required double ima_alto,
+  required double ima_ancho,
+  required dynamic item,
+}) {
   return Padding(
     padding: const EdgeInsets.all(1.0),
     child: Row(
@@ -34,8 +46,30 @@ Widget tarjeta_sub(BuildContext context, double alto, double ancho,
                   children: [
                     GestureDetector(
                       onTap: () {
+                        if (item is ProductoModel) {
+                          print("soy producto");
+                          print(item);
+                          print(item.id);
+                          print(item.nombre);
+                          print(item.valoracion);
+                          print(item.fotos);
+                          print(item.estilo);
+                          Provider.of<GenericoProvider>(context, listen: false)
+                              .setGenerico(item, sub_nombre);
+                        } else if (item is PromocionModel) {
+                          print("SOy promo");
+                          print(item);
+                          print(item.id);
+                          print(item.nombre);
+                          print(item.valoracion);
+                          print(item.fotos);
+                          print(item.estilo);
+                          Provider.of<GenericoProvider>(context, listen: false)
+                              .setGenerico(item, sub_nombre);
+                        }
+                        //  Provider<ProductoGenerico>.context().llamarProducto(item.id);
                         context.push('/detalle_producto');
-                        print("hola soy 2");
+                        //print("hola soy producto ${item.id}");
                       },
                       child: Container(
                         height: ima_alto.h,
@@ -43,37 +77,38 @@ Widget tarjeta_sub(BuildContext context, double alto, double ancho,
                         decoration: BoxDecoration(
                           //color: Colors.white,
                           image: DecorationImage(
-                            image:
-                                AssetImage('lib/assets/imagenes/recargas.png'),
-                            fit: BoxFit.cover,
+                            image: NetworkImage('${item.fotos[0]}'),
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
                     ),
-                    Positioned(
-                      top: 0.h,
-                      right: -0.0.w,
-                      child: Container(
-                        width: 45.w,
-                        height: 45.h,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border:
-                              Border.all(color: Color.fromRGBO(1, 37, 255, 1)),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "-10%",
-                            style: GoogleFonts.manrope(
-                              fontSize: 14.sp,
-                              color: Color.fromRGBO(1, 37, 255, 1),
-                              fontWeight: FontWeight.bold,
+                    item.descuento != 0
+                        ? Positioned(
+                            top: 0.h,
+                            right: -0.0.w,
+                            child: Container(
+                              width: 45.w,
+                              height: 45.h,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.r),
+                                border: Border.all(
+                                    color: Color.fromRGBO(1, 37, 255, 1)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "${item.descuento}",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 14.sp,
+                                    color: Color.fromRGBO(1, 37, 255, 1),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ),
+                          )
+                        : SizedBox.shrink(),
                   ],
                 ),
                 Container(
@@ -82,14 +117,14 @@ Widget tarjeta_sub(BuildContext context, double alto, double ancho,
                 ),
                 SizedBox(height: 7.h),
                 Text(
-                  "Recarga",
+                  "${item.nombre}",
                   style: GoogleFonts.manrope(
                       fontSize: 14.sp, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
                     Text(
-                      "4.5",
+                      "${item.valoracion}",
                       style: GoogleFonts.manrope(
                           fontWeight: FontWeight.w400, fontSize: 12.sp),
                     ),
@@ -119,7 +154,7 @@ Widget tarjeta_sub(BuildContext context, double alto, double ancho,
                               fontSize: 12.sp, fontWeight: FontWeight.w400),
                         ),
                         Text(
-                          "S/.12",
+                          "S/.${item.precio}",
                           style: GoogleFonts.manrope(
                               fontSize: 12.sp, fontWeight: FontWeight.bold),
                         ),

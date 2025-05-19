@@ -118,7 +118,7 @@ class _SubCategoriaState extends State<SubCategoria> {
               SizedBox(
                 height: 23.h,
               ),
-              Container(
+              /* Container(
                 height: 1.sh - 198.h,
                 child: GridView.count(
                   crossAxisCount: 2, // 2 columnas
@@ -126,10 +126,20 @@ class _SubCategoriaState extends State<SubCategoria> {
                   mainAxisSpacing: 5,
                   childAspectRatio: 0.6, // alto/anchura
                   children: List.generate(7, (index) {
-                    return tarjeta_sub(context, 300, 169, 0, 200, 200);
+                    return tarjeta_sub(
+                        context: context,
+                        sub_nombre: sub_nombre,
+                        alto: 300,
+                        ancho: 169,
+                        separacion_tarjeta: 0,
+                        ima_alto: 200,
+                        ima_ancho: 200,
+                        item: item);
+
+                    //return tarjeta_sub(context, 300, 169, 0, 200, 200);
                   }),
                 ),
-              )
+              )*/
             ],
           ),
         ));
