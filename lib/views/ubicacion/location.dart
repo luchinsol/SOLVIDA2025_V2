@@ -1,6 +1,9 @@
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class Location extends StatefulWidget {
   const Location({Key? key}) : super(key: key);
@@ -11,11 +14,25 @@ class Location extends StatefulWidget {
 
 class _LocationState extends State<Location> {
   final TextEditingController _username = TextEditingController();
+  //cambios
+  final TextEditingController _numeroController = TextEditingController();
+  final TextEditingController _etiquetaController = TextEditingController();
+  //
   String? _selectedDepartamento; // Agrega esto a tu clase
   String? _selectedDistrito; // Agrega esto a tu clase
 
+  //Otro Cambio
+  bool _isLoading = false;
+  final double _latitud = -16.402010759134303;
+  final double _longitud = -71.50993102412144;
+  final int _clienteId = 3;
+  //
   @override
   Widget build(BuildContext context) {
+    //INICIALIZACION DEL PROVIDER
+    final ubicacionProvider =
+        Provider.of<UbicacionProvider>(context, listen: false);
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
@@ -186,7 +203,7 @@ class _LocationState extends State<Location> {
                     height: 41.h,
                   ),
                   TextFormField(
-                    controller: _username,
+                    controller: _numeroController,
                     decoration: InputDecoration(
                       /*contentPadding: EdgeInsets.symmetric(
                                     horizontal: 20.sp, ver  ical: 16.sp),*/
@@ -215,7 +232,7 @@ class _LocationState extends State<Location> {
                     height: 41.h,
                   ),
                   TextFormField(
-                    controller: _username,
+                    controller: _etiquetaController,
                     decoration: InputDecoration(
                       /*contentPadding: EdgeInsets.symmetric(
                                     horizontal: 20.sp, ver  ical: 16.sp),*/
@@ -250,7 +267,21 @@ class _LocationState extends State<Location> {
                 width: 350.w,
                 height: 50.h,
                 child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ubicacionProvider.registrarUbicacion(
+                        departamento: _selectedDepartamento,
+                        distrito: _selectedDistrito,
+                        direccion: _username.text,
+                        numeroMzLote: _numeroController.text,
+                        etiqueta: _etiquetaController.text,
+                        latitud: _latitud.toString(),
+                        longitud: _longitud.toString(),
+                        clienteId: _clienteId,
+                      );
+                      if (context.mounted) {
+                        context.go('/mapa');
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                         shadowColor: const Color.fromARGB(255, 116, 116, 116),
                         backgroundColor: Color.fromRGBO(1, 37, 255, 1),

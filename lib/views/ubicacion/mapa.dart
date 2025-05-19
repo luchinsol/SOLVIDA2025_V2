@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:app2025v2/models/ubicacion_model.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class Mapa extends StatefulWidget {
   const Mapa({Key? key}) : super(key: key);
@@ -20,6 +24,9 @@ class _MapaState extends State<Mapa> {
   LatLng? _ubicacionSeleccionada;
   BitmapDescriptor? customIcon;
 
+  UbicacionSeleccionadaModel? _ubicacionModel;
+  bool _isLoading = true;
+
   final String googleApiKey =
       "AIzaSyA45xOgppdm-PXYDE5r07eDlkFuPzYmI9g"; // Reemplaza con tu API Key
 
@@ -28,8 +35,43 @@ class _MapaState extends State<Mapa> {
     super.initState();
     // _loadMapStyle();
     _cargarIconoPersonalizado();
+    /*
     _obtenerCoordenadasDeDireccion(
         "Plaza Pampa de Camarones, HCQH+QRM, Av. Brasil S/N, Pampa de Camarones, Yanahuara Cercado De, Arequipa 04013");
+    */
+    _cargarDatosUbicacion();
+  }
+
+  Future<void> _cargarDatosUbicacion() async {
+    try {
+      final ubicacionProvider =
+          Provider.of<UbicacionProvider>(context, listen: false);
+      // Usar el ID almacenado en el provider
+      final ubicacionId = ubicacionProvider.ubicacionId;
+
+      if (ubicacionId == null) {
+        debugPrint('No hay ID de ubicación disponible');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final ubicacion =
+          await ubicacionProvider.obtenerUbicacionDetalle(ubicacionId);
+
+      setState(() {
+        _ubicacionModel = ubicacion;
+        _ubicacionSeleccionada = LatLng(ubicacion.latitud, ubicacion.longitud);
+        //_obtenerCoordenadasDeDireccion(ubicacion.direccion);
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error al cargar datos de ubicación: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _cargarIconoPersonalizado() async {
@@ -78,8 +120,29 @@ class _MapaState extends State<Mapa> {
     }
   }
 
+  Future<void> _confirmarDireccion() async {
+    try {
+      final ubicacionProvider =
+          Provider.of<UbicacionProvider>(context, listen: false);
+
+      await ubicacionProvider.actualizarUbicacion(
+        ubicacionId: _ubicacionModel!.id,
+        distrito: _ubicacionModel!.distrito,
+        direccion: _ubicacionModel!.direccion,
+        latitud: _ubicacionSeleccionada!.latitude,
+        longitud: _ubicacionSeleccionada!.longitude,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ubicacionProvider =
+        Provider.of<UbicacionProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -139,7 +202,7 @@ class _MapaState extends State<Mapa> {
                             Chip(
                                 backgroundColor: Color.fromRGBO(1, 37, 255, 1),
                                 label: Text(
-                                  'Novia',
+                                  _ubicacionModel?.etiqueta ?? 'Etiqueta',
                                   style: GoogleFonts.manrope(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 11.sp,
@@ -148,7 +211,8 @@ class _MapaState extends State<Mapa> {
                             Container(
                               width: 200.w,
                               child: Text(
-                                "Av. Brasil - Pampa de camarones - Sachaca 448484",
+                                "${_ubicacionModel?.direccion} ${_ubicacionModel?.distrito}" ??
+                                    "Dirección no disponible",
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: GoogleFonts.manrope(
@@ -219,7 +283,12 @@ class _MapaState extends State<Mapa> {
                       width: 350.w,
                       height: 50.h,
                       child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _confirmarDireccion();
+                            if (context.mounted) {
+                              context.go('/lista_ubicaciones');
+                            }
+                          },
                           style: ElevatedButton.styleFrom(
                               shadowColor:
                                   const Color.fromARGB(255, 116, 116, 116),

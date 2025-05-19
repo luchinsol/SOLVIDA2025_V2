@@ -1,6 +1,8 @@
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Lista extends StatefulWidget {
@@ -14,11 +16,20 @@ class _ListaState extends State<Lista> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<UbicacionProvider>(context, listen: false)
+            .cargarUbicaciones(3);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    int cantidadDir = 1;
+    final ubicacionProvider = Provider.of<UbicacionProvider>(context);
+
+    //int cantidadDir = 1;
+    int cantidadDir = ubicacionProvider.ubicaciones.length;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -44,7 +55,7 @@ class _ListaState extends State<Lista> {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(top: 8.r, left: 27.r, right: 27.r),
-          child: 1 == 0
+          child: ubicacionProvider.ubicaciones.isEmpty
               ? nodireccion()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,8 +82,10 @@ class _ListaState extends State<Lista> {
                     Container(
                       height: cantidadDir > 1 ? 478.h : 120.h,
                       child: ListView.builder(
-                          itemCount: 10,
+                          itemCount: ubicacionProvider.ubicaciones.length,
                           itemBuilder: (context, index) {
+                            final ubicacion =
+                                ubicacionProvider.ubicaciones[index];
                             return Column(
                               children: [
                                 Row(
@@ -94,7 +107,7 @@ class _ListaState extends State<Lista> {
                                                 backgroundColor: Color.fromRGBO(
                                                     1, 37, 255, 1),
                                                 label: Text(
-                                                  'Novia',
+                                                  ubicacion.etiqueta!,
                                                   style: GoogleFonts.manrope(
                                                       fontWeight:
                                                           FontWeight.w600,
@@ -104,7 +117,7 @@ class _ListaState extends State<Lista> {
                                             Container(
                                               width: 200.w,
                                               child: Text(
-                                                "Av. Brasil - Pampa de camarones - Sachaca 448484",
+                                                "${ubicacion.direccion} - ${ubicacion.distrito}",
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 1,
                                                 style: GoogleFonts.manrope(

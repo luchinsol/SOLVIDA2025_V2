@@ -25,6 +25,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/ubicacion_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -32,7 +34,8 @@ Future<void> main() async {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => EventoProvider()),
-      ChangeNotifierProvider(create: (context) => CategoriaProvider())
+      ChangeNotifierProvider(create: (context) => CategoriaProvider()),
+      ChangeNotifierProvider(create: (context) => UbicacionProvider())
     ],
     child: const MyApp(),
   ));
@@ -44,7 +47,8 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) {
-        return const Login();
+        //return const Login();
+        return Location();
       },
     ),
     GoRoute(
@@ -111,7 +115,20 @@ final GoRouter _router = GoRouter(
         path: '/libro',
         builder: (BuildContext context, GoRouterState state) {
           return Libroreclamacion();
-        })
+        }),
+    //CAMBIO PARA LA NAVEGACION
+    GoRoute(
+      path: '/mapa',
+      builder: (BuildContext context, GoRouterState state) {
+        return const Mapa();
+      },
+    ),
+    GoRoute(
+      path: '/lista_ubicaciones',
+      builder: (BuildContext context, GoRouterState state) {
+        return const Lista();
+      },
+    ),
   ],
 );
 
