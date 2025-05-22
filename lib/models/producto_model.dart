@@ -1,7 +1,7 @@
 import 'package:app2025v2/models/estilo_model.dart';
 
 class ProductoModel {
-  int? id;
+  int id;
   String nombre;
   List<String> fotos;
   int? valoracion;

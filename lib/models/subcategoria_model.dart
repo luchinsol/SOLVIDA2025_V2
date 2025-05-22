@@ -8,7 +8,7 @@ class SubcategoriaModel {
   String fecha_inicio;
   String fecha_fin;
   List<ProductoModel> productos;
-  List<PromocionModel> promocion;
+  List<PromocionModel> promociones;
   // CONSTRUCTOR
   SubcategoriaModel(
       {required this.id,
@@ -17,7 +17,7 @@ class SubcategoriaModel {
       required this.fecha_inicio,
       required this.fecha_fin,
       required this.productos,
-      required this.promocion});
+      required this.promociones});
 
   factory SubcategoriaModel.fromJson(Map<String, dynamic> json) {
     return SubcategoriaModel(
@@ -29,7 +29,7 @@ class SubcategoriaModel {
         productos: (json['productos'] as List)
             .map((item) => ProductoModel.fromJson(item))
             .toList(),
-        promocion: (json['promociones'] as List)
+        promociones: (json['promociones'] as List)
             .map((item) => PromocionModel.fromJson(item))
             .toList());
   }

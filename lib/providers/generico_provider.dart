@@ -1,4 +1,5 @@
 import 'package:app2025v2/models/generico_model.dart';
+import 'package:app2025v2/models/producto_model.dart';
 import 'package:flutter/material.dart';
 
 class GenericoProvider extends ChangeNotifier {
@@ -16,6 +17,7 @@ class GenericoProvider extends ChangeNotifier {
         precio: item.precio,
         descuento: item.descuento,
         nombre_sub: subnombre,
+        tipo: item is ProductoModel ? "producto" : "promocion",
         // detalles: detalles,
         estilo: item.estilo);
     notifyListeners();

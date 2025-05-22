@@ -1,7 +1,11 @@
+import 'package:app2025v2/class_config/clase_notificacion.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/providers/generico_provider.dart';
+import 'package:app2025v2/providers/subcategoria_provider.dart';
+import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/views/barra/barra.dart';
 import 'package:app2025v2/views/client/carrito.dart';
 import 'package:app2025v2/views/client/circular.dart';
@@ -31,12 +35,21 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
+  // Inicializa el servicio de notificaciones
+  final notificationsService = NotificationsService();
+  await notificationsService
+      .requestNotificationPermission(); // Solicita permisos
+  await notificationsService.initNotification(); // Configura las notificaciones
+
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => EventoProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaInicioProvider()),
       ChangeNotifierProvider(create: (context) => GenericoProvider()),
+      ChangeNotifierProvider(create: (context) => CarritoProvider()),
+      ChangeNotifierProvider(create: (context) => SubcategoriaProvider()),
+      ChangeNotifierProvider(create: (context) => TemperaturaProvider()),
     ],
     child: const MyApp(),
   ));

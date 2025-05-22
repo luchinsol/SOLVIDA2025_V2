@@ -1,5 +1,6 @@
 import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/generico_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -159,18 +160,30 @@ Widget tarjeta_sub({
                               fontSize: 12.sp, fontWeight: FontWeight.bold),
                         ),
                         Container(
-                          width: 24.w,
-                          height: 24.w,
-                          decoration: BoxDecoration(
-                            color: Color.fromRGBO(1, 37, 255, 1),
-                            borderRadius: BorderRadius.circular(50.r),
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 14.sp,
-                          ),
-                        )
+                            width: 24.w,
+                            height: 24.w,
+                            decoration: BoxDecoration(
+                              color: Color.fromRGBO(1, 37, 255, 1),
+                              borderRadius: BorderRadius.circular(50.r),
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                print("hoal");
+                                Provider.of<CarritoProvider>(context,
+                                        listen: false)
+                                    .agregarProducto(
+                                  item,
+                                );
+                                Provider.of<CarritoProvider>(context,
+                                        listen: false)
+                                    .mostrarProducto(item);
+                              },
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 14.sp,
+                              ),
+                            ))
                       ],
                     ),
                   ),

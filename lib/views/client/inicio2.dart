@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:app2025v2/class_config/clase_notificacion.dart';
 import 'package:app2025v2/models/subcategoria_model.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
+import 'package:app2025v2/providers/subcategoria_provider.dart';
+import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/views/client/components/categorias.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_inferior/curva2.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_superior/clipper1.dart';
@@ -106,6 +110,7 @@ class _Inicio2State extends State<Inicio2> {
   int _currentIndex = 0;
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
+  final notificationsService = NotificationsService(); // Obtén la instancia
 
   @override
   void initState() {
@@ -123,6 +128,14 @@ class _Inicio2State extends State<Inicio2> {
       if (mounted) {
         Provider.of<CategoriaInicioProvider>(context, listen: false)
             .getCategoriaSubcategoria(null);
+      }
+    });
+
+    // Llama una vez para obtener los eventos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<TemperaturaProvider>(context, listen: false)
+            .getTemperatura();
       }
     });
 
@@ -167,6 +180,7 @@ class _Inicio2State extends State<Inicio2> {
     final categoriaInicio =
         context.watch<CategoriaInicioProvider>().allcategoria_subcategoria;
     //String nombre
+    final carritoProvider = context.watch<CarritoProvider>();
 
     // ⛔ Asegurarse de que hay eventos antes de seguir
     if (eventos.isEmpty) {
@@ -180,459 +194,516 @@ class _Inicio2State extends State<Inicio2> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        controller: _scrollControllerInicio,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          // crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // CURVA 1 SUPERIROR
-            Stack(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollControllerInicio,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // CURVA
-                Curva1(
-                  currentIndex: _currentIndex,
-                  fondo: eventoactual.fondofoto,
-                ),
-
-                // MENSAJES
-                Positioned(
-                  top: 160.h,
-                  left: 12.w,
-                  child: GestureDetector(
-                      onTap: () {
-                        print("object");
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          // MENSAJES
-                          Container(
-                            height: 200.h,
-                            width: 248.w,
-                            //color: Colors.green,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Text.rich(
-                                  TextSpan(children: [
-                                    TextSpan(
-                                        text:
-                                            '${banners[_bannerIndex].titulo}\n',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20.sp,
-                                            color: Color.fromRGBO(
-                                                255, 255, 255, 1))),
-                                    TextSpan(
-                                        text:
-                                            '${banners[_bannerIndex].descripcion}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16.sp,
-                                            color: Color.fromRGBO(
-                                                255, 255, 255, 1)))
-                                  ]),
-                                  maxLines: 2,
-                                ),
-                                SizedBox(
-                                  height: 18.h,
-                                ),
-                                Text.rich(TextSpan(children: [
-                                  TextSpan(
-                                      text:
-                                          '${banners[_bannerIndex].restriccion}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14.sp,
-                                          color:
-                                              Color.fromRGBO(255, 255, 255, 1)))
-                                ]))
-                              ],
-                            ),
-                          ),
-                        ],
-                      )),
-                ),
-
-                // IMAGEN SOBREPUESTA
-                Positioned(
-                  top: 160.h,
-                  right: 8.w,
-                  child: // IMAGENES
-                      Container(
-                    height: 235.h,
-                    width: 140.w,
-                    child: PageView.builder(
-                        controller: _bannerController,
-                        itemCount: banners.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            height: 235.h,
-                            width: 140.w,
-                            decoration: BoxDecoration(
-                              //  color: const Color.fromARGB(255, 100, 125, 134),
-                              image: DecorationImage(
-                                image: AssetImage(
-                                    'lib/assets/imagenes/${banners[_bannerIndex].foto}'),
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                          );
-                        }),
-                  ),
-                ),
-              ],
-            ),
-
-            // CUERPO DEL APP
-            Transform.translate(
-              offset: Offset(0, -60), //
-              child: Padding(
-                padding: EdgeInsets.only(left: 14.r, right: 14.r),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // CURVA 1 SUPERIROR
+                Stack(
                   children: [
-                    // CATEGORÍA + VERMAS
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Categorías",
-                          style: GoogleFonts.manrope(
-                              fontWeight: FontWeight.bold, fontSize: 14.sp),
-                        ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              "ver más",
-                              style: GoogleFonts.manrope(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.sp,
-                                  color: Colors.grey.shade600),
-                            ))
-                      ],
-                    ),
-                    // LIST VIEW * OJO CATEGORIAS
-                    Container(
-                      height: 96.h,
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        borderRadius: BorderRadius.circular(25.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey
-                                .withOpacity(0.3), // Color de la sombra
-                            spreadRadius: 5, // Qué tan expandida está la sombra
-                            blurRadius: 5, // Qué tan difuminada está la sombra
-                            offset: Offset(
-                                0, 3), // Desplazamiento de la sombra (x, y)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: categorias.map((item) {
-                          return categoria(context, item);
-                        }).toList(),
-                      ),
+                    // CURVA
+                    Curva1(
+                      currentIndex: _currentIndex,
+                      fondo: eventoactual.fondofoto,
                     ),
 
-                    SizedBox(
-                      height: 31.h,
-                    ),
-
-                    // NOVEDADES
-                    Text(
-                      "Novedades",
-                      style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.w400, fontSize: 16.sp),
-                    ),
-                    SizedBox(
-                      height: 23.h,
-                    ),
-                    Container(
-                      height: 172.h,
-                      key: _imageKey,
-                      //color: Colors.pink,
-                      child: ListView.builder(
-                          controller: _pageController,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 3,
-                          itemBuilder: (context, index) {
-                            return tarjetas(
-                                '-20%',
-                                'Paquetes 700ml S/.36 todo el año',
-                                'Accesorios',
-                                'lib/assets/imagenes/bodegon.png');
-                          }),
-                    ),
-                    SizedBox(
-                      height: 5.h,
-                    ),
-                    /*Center(
-                      child: SmoothPageIndicator(
-                        controller: _pageController,
-                        count: 3, // Número de páginas
-                        effect: ExpandingDotsEffect(
-                          dotHeight: 3.5.h,
-                          dotWidth: 15.w,
-                          activeDotColor:
-                              const Color.fromARGB(255, 33, 51, 170),
-                          dotColor: Colors.grey.shade300,
-                        ),
-                      ),
-                    ),*/
-
-                    SizedBox(
-                      height: 15.h,
-                    ),
-
-                    // SUBCATEGORIA 1
-                    for (int i = 0;
-                        i < (categoriaInicio?.subcategorias.length ?? 0);
-                        i++) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            categoriaInicio!.subcategorias[i].nombre, // nombre
-                            style: GoogleFonts.manrope(
-                              fontSize: 16.sp,
-                            ),
-                          ),
-                          TextButton(
-                              onPressed: () {
-                                categoriaInicio.subcategorias[i];
-                                print("-----------");
-                                print("${categoriaInicio.nombre}");
-                                print("${categoriaInicio.subcategorias[i].id}");
-                                print(
-                                    "${categoriaInicio.subcategorias[i].nombre}");
-                                print("-------------");
-                                // context.push('/subcategoria');
-                                // se llama a un provider , donde se le pasa el
-                                // id de la subcategori: localhost:20/subacta/{id}
-                              },
-                              child: Text(
-                                "ver más",
-                                style: GoogleFonts.manrope(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey.shade600),
-                              ))
-                        ],
-                      ),
-                      SizedBox(
-                        height: 10.h,
-                      ), // Subcategoria 1
-                      subcategoria(categoriaInicio!.subcategorias[i]),
-
-                      if (i == 0) ...[
-                        SizedBox(
-                          height: 50.h,
-                        ),
-
-                        //CONTAINER DE TEMPERATURA
-
-                        Stack(
-                          clipBehavior: Clip
-                              .none, // ¡Esto es clave para que el vaso se salga!
-                          children: [
-                            // Container base (el rojo)
-                            Container(
-                              width: 1.sw,
-                              height: 140,
-                              padding: EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent,
-                                borderRadius: BorderRadius.circular(20),
+                    // MENSAJES
+                    Positioned(
+                      top: 160.h,
+                      left: 12.w,
+                      child: GestureDetector(
+                          onTap: () {
+                            print("object");
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // MENSAJES
+                              Container(
+                                height: 200.h,
+                                width: 248.w,
+                                //color: Colors.green,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text.rich(
+                                      TextSpan(children: [
+                                        TextSpan(
+                                            text:
+                                                '${banners[_bannerIndex].titulo}\n',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20.sp,
+                                                color: Color.fromRGBO(
+                                                    255, 255, 255, 1))),
+                                        TextSpan(
+                                            text:
+                                                '${banners[_bannerIndex].descripcion}',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16.sp,
+                                                color: Color.fromRGBO(
+                                                    255, 255, 255, 1)))
+                                      ]),
+                                      maxLines: 2,
+                                    ),
+                                    SizedBox(
+                                      height: 18.h,
+                                    ),
+                                    Text.rich(TextSpan(children: [
+                                      TextSpan(
+                                          text:
+                                              '${banners[_bannerIndex].restriccion}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.sp,
+                                              color: Color.fromRGBO(
+                                                  255, 255, 255, 1)))
+                                    ]))
+                                  ],
+                                ),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('21°C',
-                                      style: GoogleFonts.manrope(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 40,
-                                          color: Colors.white)),
-                                  Text('¡Qué calor!',
-                                      style: GoogleFonts.manrope(
-                                          fontSize: 20.sp,
-                                          color: Colors.white)),
-                                  Text('Mantente siempre hidratado',
-                                      style: GoogleFonts.manrope(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14.sp,
-                                          color: Colors.white70)),
-                                ],
-                              ),
-                            ),
+                            ],
+                          )),
+                    ),
 
-                            // Vaso que se sale del Container
-                            Positioned(
-                              right: 15, // Ajusta este valor según tu diseño
-                              top:
-                                  -30, // Puedes moverlo también hacia arriba si quieres
-                              child: Container(
-                                height: 200.w,
-                                width: 140.h,
+                    // IMAGEN SOBREPUESTA
+                    Positioned(
+                      top: 160.h,
+                      right: 8.w,
+                      child: // IMAGENES
+                          Container(
+                        height: 235.h,
+                        width: 140.w,
+                        child: PageView.builder(
+                            controller: _bannerController,
+                            itemCount: banners.length,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                height: 235.h,
+                                width: 140.w,
                                 decoration: BoxDecoration(
-                                    //color: Colors.grey,
-                                    image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: AssetImage(
-                                            'lib/assets/imagenes/vaso.png'))),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(
-                          height: 28.h,
-                        ),
-                      ]
-                    ], // FIN DEL FOR
-
-                    SizedBox(
-                      height: 23.h,
-                    ),
-                    // subcategoria(),
-
-                    // SUBCATEGORIA 2
-                    /*
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Otoño con Sol",
-                          style: GoogleFonts.manrope(
-                            fontSize: 16.sp,
-                          ),
-                        ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              "ver más",
-                              style: GoogleFonts.manrope(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade600),
-                            ))
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-
-                    // Subcategoria 1
-                    subcategoria(),
-                    SizedBox(
-                      height: 23.h,
-                    ),
-                    subcategoria(),
-                    SizedBox(
-                      height: 15.h,
-                    ),*/
-
-                    // NOVEDADES
-                    Text(
-                      "Novedades",
-                      style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.w400, fontSize: 16.sp),
-                    ),
-                    SizedBox(
-                      height: 23.h,
-                    ),
-                    Container(
-                      height: 172.h,
-
-                      //color: Colors.pink,
-                      child: ListView.builder(
-                          controller: _pageController,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 3,
-                          itemBuilder: (context, index) {
-                            return tarjetas(
-                                '-20%',
-                                'Paquetes 700ml S/.36 todo el año',
-                                'Accesorios',
-                                'lib/assets/imagenes/bodegon.png');
-                          }),
-                    ),
-                    SizedBox(
-                      height: 5.h,
-                    ),
-                    /*Center(
-                      child: SmoothPageIndicator(
-                        controller: _pageController,
-                        count: 3, // Número de páginas
-                        effect: ExpandingDotsEffect(
-                          dotHeight: 3.5.h,
-                          dotWidth: 15.w,
-                          activeDotColor:
-                              const Color.fromARGB(255, 33, 51, 170),
-                          dotColor: Colors.grey.shade300,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20.h,
-                    ),*/
-                    // SUBCATEGORIAS
-
-                    SizedBox(
-                      height: 7.h,
-                    ),
-
-                    Transform.translate(
-                      offset: Offset(0, 55),
-                      child: Container(
-                        height: 66.h,
-                        decoration: BoxDecoration(
-                            //color: const Color.fromRGBO(1, 37, 255, 1),
-                            borderRadius: BorderRadius.circular(25.r)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          //crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 87.w,
-                              height: 87.w,
-                              decoration: BoxDecoration(
+                                  //  color: const Color.fromARGB(255, 100, 125, 134),
                                   image: DecorationImage(
-                                      image: AssetImage(
-                                          'lib/assets/imagenes/logo.png'))),
-                            ),
-                            SizedBox(
-                              width: 20.w,
-                            ),
-                            Text(
-                              "! Llevando vida a tu hogar !",
-                              style: GoogleFonts.manrope(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromRGBO(1, 37, 255, 1)),
-                            )
-                          ],
-                        ),
+                                    image: AssetImage(
+                                        'lib/assets/imagenes/${banners[_bannerIndex].foto}'),
+                                    fit: BoxFit.fill,
+                                  ),
+                                ),
+                              );
+                            }),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
 
-            // CURVA 2 INFERIOR
-            curva2(onVolverArriba: _scrollArriba)
-          ],
-        ),
+                // CUERPO DEL APP
+                Transform.translate(
+                  offset: Offset(0, -60), //
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 14.r, right: 14.r),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // CATEGORÍA + VERMAS
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Categorías",
+                              style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold, fontSize: 14.sp),
+                            ),
+                            TextButton(
+                                onPressed: () {},
+                                child: Text(
+                                  "ver más",
+                                  style: GoogleFonts.manrope(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.sp,
+                                      color: Colors.grey.shade600),
+                                ))
+                          ],
+                        ),
+                        // LIST VIEW * OJO CATEGORIAS
+                        Container(
+                          height: 96.h,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                            borderRadius: BorderRadius.circular(25.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey
+                                    .withOpacity(0.3), // Color de la sombra
+                                spreadRadius:
+                                    5, // Qué tan expandida está la sombra
+                                blurRadius:
+                                    5, // Qué tan difuminada está la sombra
+                                offset: Offset(
+                                    0, 3), // Desplazamiento de la sombra (x, y)
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: categorias.map((item) {
+                              return categoria(context, item);
+                            }).toList(),
+                          ),
+                        ),
+
+                        SizedBox(
+                          height: 31.h,
+                        ),
+                        // ----------------------- NOTIFICACION DEMO
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Ejemplo: Mostrar notificación con acciones
+                            await notificationsService.showOrderNotification(
+                              id: 1,
+                              title: 'Nuevo pedido',
+                              body:
+                                  '🛍️🔥 ¡Descuentos de hasta el 50%! 🕒 Solo por tiempo limitado.👉 ¡Toca para aprovecharlo ya!',
+                              payload: 'order_123', // Datos adicionales
+                            );
+                          },
+                          child: Text('Mostrar Notificación'),
+                        ),
+                        // NOVEDADES
+                        Text(
+                          "Novedades",
+                          style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.w400, fontSize: 16.sp),
+                        ),
+                        SizedBox(
+                          height: 23.h,
+                        ),
+                        Container(
+                          height: 172.h,
+                          key: _imageKey,
+                          //color: Colors.pink,
+                          child: ListView.builder(
+                              controller: _pageController,
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 3,
+                              itemBuilder: (context, index) {
+                                return tarjetas(
+                                    '-20%',
+                                    'Paquetes 700ml S/.36 todo el año',
+                                    'Accesorios',
+                                    'lib/assets/imagenes/bodegon.png');
+                              }),
+                        ),
+                        SizedBox(
+                          height: 5.h,
+                        ),
+                        /*Center(
+                          child: SmoothPageIndicator(
+                            controller: _pageController,
+                            count: 3, // Número de páginas
+                            effect: ExpandingDotsEffect(
+                              dotHeight: 3.5.h,
+                              dotWidth: 15.w,
+                              activeDotColor:
+                                  const Color.fromARGB(255, 33, 51, 170),
+                              dotColor: Colors.grey.shade300,
+                            ),
+                          ),
+                        ),*/
+
+                        SizedBox(
+                          height: 15.h,
+                        ),
+
+                        // SUBCATEGORIA 1
+                        for (int i = 0;
+                            i < (categoriaInicio?.subcategorias.length ?? 0);
+                            i++) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                categoriaInicio!
+                                    .subcategorias[i].nombre, // nombre
+                                style: GoogleFonts.manrope(
+                                  fontSize: 16.sp,
+                                ),
+                              ),
+                              TextButton(
+                                  onPressed: () async {
+                                    categoriaInicio.subcategorias[i];
+                                    print("-----------");
+                                    print("${categoriaInicio.nombre}");
+                                    print(
+                                        "${categoriaInicio.subcategorias[i].id}");
+                                    print(
+                                        "${categoriaInicio.subcategorias[i].nombre}");
+                                    print("-------------");
+                                    // DIÁLOGO DE ESPERA
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (BuildContext context) {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                    // LLAMADA DE API
+                                    final idsubcategoria =
+                                        categoriaInicio.subcategorias[i].id;
+                                    await Provider.of<SubcategoriaProvider>(
+                                            context,
+                                            listen: false)
+                                        .getSubcategoria(idsubcategoria);
+
+                                    // SALIDA DEL DIÁLOGO ESPERA
+                                    Navigator.pop(context);
+
+                                    context.push('/subcategoria');
+                                    // se llama a un provider , donde se le pasa el
+                                    // id de la subcategori: localhost:20/subacta/{id}
+                                  },
+                                  child: Text(
+                                    "ver más",
+                                    style: GoogleFonts.manrope(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600),
+                                  ))
+                            ],
+                          ),
+                          SizedBox(
+                            height: 10.h,
+                          ), // Subcategoria 1
+                          subcategoria(categoriaInicio!.subcategorias[i]),
+
+                          if (i == 0) ...[
+                            SizedBox(
+                              height: 50.h,
+                            ),
+
+                            //CONTAINER DE TEMPERATURA
+
+                            Stack(
+                              clipBehavior: Clip
+                                  .none, // ¡Esto es clave para que el vaso se salga!
+                              children: [
+                                // Container base (el rojo)
+                                Container(
+                                  width: 1.sw,
+                                  height: 140,
+                                  padding: EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color.fromARGB(
+                                        255, 255, 253, 164),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('21°C',
+                                          style: GoogleFonts.manrope(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 40,
+                                              color: Colors.white)),
+                                      Text('¡Qué calor!',
+                                          style: GoogleFonts.manrope(
+                                              fontSize: 20.sp,
+                                              color: Colors.white)),
+                                      Text('Mantente siempre hidratado',
+                                          style: GoogleFonts.manrope(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.sp,
+                                              color: Colors.white70)),
+                                    ],
+                                  ),
+                                ),
+
+                                // Vaso que se sale del Container
+                                Positioned(
+                                  right:
+                                      15, // Ajusta este valor según tu diseño
+                                  top:
+                                      -30, // Puedes moverlo también hacia arriba si quieres
+                                  child: Container(
+                                    height: 200.w,
+                                    width: 140.h,
+                                    decoration: BoxDecoration(
+                                        //color: Colors.grey,
+                                        image: DecorationImage(
+                                            fit: BoxFit.cover,
+                                            image: AssetImage(
+                                                'lib/assets/imagenes/vaso.png'))),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(
+                              height: 28.h,
+                            ),
+                          ]
+                        ], // FIN DEL FOR
+
+                        SizedBox(
+                          height: 23.h,
+                        ),
+
+                        // NOVEDADES
+                        Text(
+                          "Novedades",
+                          style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.w400, fontSize: 16.sp),
+                        ),
+                        SizedBox(
+                          height: 23.h,
+                        ),
+                        Container(
+                          height: 172.h,
+
+                          //color: Colors.pink,
+                          child: ListView.builder(
+                              controller: _pageController,
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 3,
+                              itemBuilder: (context, index) {
+                                return tarjetas(
+                                    '-20%',
+                                    'Paquetes 700ml S/.36 todo el año',
+                                    'Accesorios',
+                                    'lib/assets/imagenes/bodegon.png');
+                              }),
+                        ),
+                        SizedBox(
+                          height: 5.h,
+                        ),
+                        /*Center(
+                          child: SmoothPageIndicator(
+                            controller: _pageController,
+                            count: 3, // Número de páginas
+                            effect: ExpandingDotsEffect(
+                              dotHeight: 3.5.h,
+                              dotWidth: 15.w,
+                              activeDotColor:
+                                  const Color.fromARGB(255, 33, 51, 170),
+                              dotColor: Colors.grey.shade300,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20.h,
+                        ),*/
+                        // SUBCATEGORIAS
+
+                        SizedBox(
+                          height: 7.h,
+                        ),
+
+                        Transform.translate(
+                          offset: Offset(0, 55),
+                          child: Container(
+                            height: 66.h,
+                            decoration: BoxDecoration(
+                                //color: const Color.fromRGBO(1, 37, 255, 1),
+                                borderRadius: BorderRadius.circular(25.r)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              //crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 87.w,
+                                  height: 87.w,
+                                  decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          image: AssetImage(
+                                              'lib/assets/imagenes/logo.png'))),
+                                ),
+                                SizedBox(
+                                  width: 20.w,
+                                ),
+                                Text(
+                                  "! Llevando vida a tu hogar !",
+                                  style: GoogleFonts.manrope(
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(1, 37, 255, 1)),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // CURVA 2 INFERIOR
+                curva2(onVolverArriba: _scrollArriba)
+              ],
+            ),
+          ),
+          if (carritoProvider.totalItems > 0)
+            // CARRITO FLOTANTE
+            Positioned(
+                bottom: 30.h,
+                //right: 20.w,
+                left: 80.w,
+                child: Container(
+                  width: 230.w,
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 162, 250, 61),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 6),
+                      ],
+                      borderRadius: BorderRadius.circular(20.r)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          "${carritoProvider.totalItems} agregado(s)",
+                          style: GoogleFonts.manrope(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(1, 37, 255, 1)),
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              context.push('/carrito');
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Ver",
+                                  style: GoogleFonts.manrope(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(1, 37, 255, 1)),
+                                ),
+                                Icon(Icons.shopping_cart_outlined,
+                                    color: Color.fromRGBO(1, 37, 255, 1))
+                              ],
+                            ))
+                      ],
+                    ),
+                  ),
+                ).animate().shakeX())
+        ],
       ),
     );
   }

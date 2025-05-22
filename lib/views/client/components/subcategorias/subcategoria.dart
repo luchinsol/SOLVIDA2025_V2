@@ -33,14 +33,14 @@ Widget subcategoria(SubcategoriaModel subcategoria) {
                     //return tarjeta_sub(context , 194, 133, 19, 100, 100, producto);
                   }),
             ),
-          if (subcategoria.promocion.isNotEmpty)
+          if (subcategoria.promociones.isNotEmpty)
             Container(
               height: 200.h,
               child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: subcategoria.promocion.length,
+                  itemCount: subcategoria.promociones.length,
                   itemBuilder: (context, index) {
-                    final promo = subcategoria.promocion[index];
+                    final promo = subcategoria.promociones[index];
                     return tarjeta_sub(
                         context: context,
                         sub_nombre: subcategoria.nombre,

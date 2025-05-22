@@ -1,19 +1,23 @@
+import 'package:app2025v2/models/generico_model.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class ItemCarrito extends StatefulWidget {
-  const ItemCarrito({super.key});
+  final GenericoModel producto;
+  final int index;
+  const ItemCarrito({super.key, required this.producto, required this.index});
 
   @override
   State<ItemCarrito> createState() => _ItemCarritoState();
 }
 
 class _ItemCarritoState extends State<ItemCarrito> {
-  int contador = 1;
-
   @override
   Widget build(BuildContext context) {
+    final carritoProvider = context.watch<CarritoProvider>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -32,42 +36,44 @@ class _ItemCarritoState extends State<ItemCarrito> {
                     height: 55.w,
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                            image: AssetImage(
-                                'lib/assets/imagenes/setecientos.png'))),
+                            image: NetworkImage(widget.producto.fotos[0]))),
                   ),
                   SizedBox(width: 10.w),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Promoción Smart Fresh",
+                        "${widget.producto.nombre}",
                         style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold, fontSize: 14.sp),
                       ),
                       Row(
                         children: [
                           Text(
-                            "S/.20.00",
+                            "S/.${widget.producto.precio}",
                             style: GoogleFonts.manrope(
                                 fontSize: 12.sp, fontWeight: FontWeight.bold),
                           ),
                           SizedBox(width: 10.w),
-                          Container(
-                            height: 30.h,
-                            width: 60.w,
-                            decoration: BoxDecoration(
-                                color: Color.fromRGBO(1, 37, 255, 1),
-                                borderRadius: BorderRadius.circular(20.r)),
-                            child: Center(
-                              child: Text(
-                                "10%",
-                                style: GoogleFonts.manrope(
-                                    fontSize: 12.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          )
+                          widget.producto.descuento! > 0
+                              ? Container(
+                                  height: 30.h,
+                                  width: 60.w,
+                                  decoration: BoxDecoration(
+                                      color: Color.fromRGBO(1, 37, 255, 1),
+                                      borderRadius:
+                                          BorderRadius.circular(20.r)),
+                                  child: Center(
+                                    child: Text(
+                                      "${widget.producto.descuento}%",
+                                      style: GoogleFonts.manrope(
+                                          fontSize: 12.sp,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                )
+                              : SizedBox.shrink()
                         ],
                       )
                     ],
@@ -82,12 +88,13 @@ class _ItemCarritoState extends State<ItemCarrito> {
                     IconButton(
                         onPressed: () {
                           setState(() {
-                            if (contador > 1) contador--;
+                            if (widget.producto.cantidad > 1)
+                              carritoProvider.decrementar(widget.index);
                           });
                         },
                         icon: Icon(Icons.remove)),
                     Text(
-                      "$contador",
+                      "${widget.producto.cantidad}",
                       style: GoogleFonts.manrope(
                           fontSize: 14.sp, fontWeight: FontWeight.bold),
                     ),
@@ -95,7 +102,8 @@ class _ItemCarritoState extends State<ItemCarrito> {
                       color: Color.fromRGBO(1, 37, 255, 1),
                       onPressed: () {
                         setState(() {
-                          if (contador < 99) contador++;
+                          if (widget.producto.cantidad < 99)
+                            carritoProvider.incrementar(widget.index);
                         });
                       },
                       icon: Icon(Icons.add),
@@ -106,7 +114,11 @@ class _ItemCarritoState extends State<ItemCarrito> {
             ],
           ),
         ),
-        IconButton(onPressed: () {}, icon: Icon(Icons.delete_outline)),
+        IconButton(
+            onPressed: () {
+              carritoProvider.deleteProducto(widget.index);
+            },
+            icon: Icon(Icons.delete_outline)),
       ],
     );
   }

@@ -1,10 +1,14 @@
+import 'package:app2025v2/providers/carrito_provider.dart';
+import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/views/client/components/categorias.dart';
 import 'package:app2025v2/views/client/components/subcategorias/subcategoria.dart';
 import 'package:app2025v2/views/client/components/subcategorias/tarjeta_sub.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SubCategoria extends StatefulWidget {
   const SubCategoria({Key? key}) : super(key: key);
@@ -16,11 +20,17 @@ class SubCategoria extends StatefulWidget {
 class _SubCategoriaState extends State<SubCategoria> {
   int selectedIndex = 0;
 
-  final List<String> chips = ['Todos', 'Promos', 'Productos'];
+  final List<String> chips = ['Todos', 'promocion', 'producto'];
   @override
   Widget build(BuildContext context) {
+    final seccionSub =
+        context.watch<SubcategoriaProvider>().allproductossubcategoria;
+    final items = context.watch<SubcategoriaProvider>().itemsFiltrados;
+    final carritoProvider = context.watch<CarritoProvider>();
+
     return Scaffold(
         backgroundColor: Colors.white,
+        // APP BAR + CARRITO
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           leading: Container(
@@ -40,7 +50,7 @@ class _SubCategoriaState extends State<SubCategoria> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Lo más vendido',
+                '${seccionSub?.nombre}',
                 style: GoogleFonts.manrope(fontSize: 16.sp),
               ),
               badges.Badge(
@@ -48,13 +58,13 @@ class _SubCategoriaState extends State<SubCategoria> {
                   badgeContent: Padding(
                     padding: const EdgeInsets.all(3.0),
                     child: Text(
-                      '3',
+                      '${carritoProvider.totalItems}',
                       style: GoogleFonts.manrope(
                           color: Color.fromRGBO(1, 37, 255, 1),
                           fontWeight: FontWeight.bold),
                     ),
                   ),
-                  showBadge: true,
+                  showBadge: carritoProvider.totalItems > 0 ? true : false,
                   badgeStyle: badges.BadgeStyle(
                       borderRadius: BorderRadius.circular(4),
                       borderSide: BorderSide(
@@ -62,6 +72,7 @@ class _SubCategoriaState extends State<SubCategoria> {
                       badgeColor: const Color.fromARGB(255, 255, 255, 255)),
                   child: IconButton(
                     onPressed: () {
+                      context.push('/carrito');
                       print("Carrita");
                     },
                     icon: Icon(
@@ -77,6 +88,7 @@ class _SubCategoriaState extends State<SubCategoria> {
           padding: EdgeInsets.only(left: 27.r, top: 21.r, right: 27.r),
           child: Column(
             children: [
+              // FILTROS
               Row(
                 children: List.generate(chips.length, (index) {
                   final bool isSelected = selectedIndex == index;
@@ -88,6 +100,9 @@ class _SubCategoriaState extends State<SubCategoria> {
                         setState(() {
                           selectedIndex = index;
                         });
+                        Provider.of<SubcategoriaProvider>(context,
+                                listen: false)
+                            .filtrarTipo(chips[index]);
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
@@ -118,28 +133,32 @@ class _SubCategoriaState extends State<SubCategoria> {
               SizedBox(
                 height: 23.h,
               ),
-              /* Container(
+
+              // CUERPO DEL GRID
+
+              Container(
                 height: 1.sh - 198.h,
                 child: GridView.count(
                   crossAxisCount: 2, // 2 columnas
                   crossAxisSpacing: 1,
                   mainAxisSpacing: 5,
                   childAspectRatio: 0.6, // alto/anchura
-                  children: List.generate(7, (index) {
+                  children: List.generate(items.length, (index) {
+                    final actualProducto = items[index];
                     return tarjeta_sub(
                         context: context,
-                        sub_nombre: sub_nombre,
+                        sub_nombre: seccionSub!.nombre,
                         alto: 300,
                         ancho: 169,
                         separacion_tarjeta: 0,
                         ima_alto: 200,
                         ima_ancho: 200,
-                        item: item);
+                        item: actualProducto);
 
                     //return tarjeta_sub(context, 300, 169, 0, 200, 200);
                   }),
                 ),
-              )*/
+              )
             ],
           ),
         ));
