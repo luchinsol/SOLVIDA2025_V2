@@ -12,83 +12,169 @@ final estados = [
   {'label': 'Entregado', 'icon': Icons.check_circle, 'color': Colors.green},
 ];
 
-Widget pedido() {
+Widget pedido(BuildContext context) {
   return Column(
     children: [
       Container(
-        height: 310.h,
+        height: 380.h,
         width: 360.w,
-        decoration: BoxDecoration(),
+        decoration: BoxDecoration(
+            //color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20.r)),
         child: Column(
           children: [
-            // TÍTULO DEL PEDIDO
+            // NÚMERO Y ESTADO
             Container(
-              // color: Colors.amber,
               child: Row(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    height: 50.h,
-                    width: 50.w,
-                    decoration: BoxDecoration(
-                        // color: Colors.amber,
-                        image: DecorationImage(
-                            image:
-                                AssetImage('lib/assets/imagenes/bidon.png'))),
-                  ),
-                  SizedBox(
-                    width: 20.w,
-                  ),
-                  Container(
-                    height: 50.h,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bidon 20L',
-                          style: GoogleFonts.manrope(fontSize: 14.sp),
-                        ),
-                        Text(
-                          "S/.25",
-                          style: GoogleFonts.manrope(
-                              fontSize: 14.sp, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                  Text(
+                    "Pedido N°1234567",
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
                     ),
                   ),
-                  Expanded(
-                    child: Container(),
-                  ),
-                  Text.rich(TextSpan(children: [
-                    TextSpan(
-                        text: 'ID:',
-                        style: GoogleFonts.manrope(fontSize: 14.sp)),
-                    TextSpan(
-                        text: '#123456',
+                  Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.r)),
+                    child: Chip(
+                      // shadowColor: Colors.amber,
+                      label: Text(
+                        "pendiente",
                         style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.bold, fontSize: 14.sp))
-                  ]))
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.sp,
+                            color: Color.fromRGBO(1, 37, 255, 1)),
+                      ),
+                      backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+                    ),
+                  )
+                ],
+              ),
+            ),
+
+            SizedBox(
+              height: 15.h,
+            ),
+
+            // FECHA
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Fecha: 24/05",
+                        style: GoogleFonts.manrope(fontSize: 14.sp),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(
+              height: 10.h,
+            ),
+
+            // DIRECCIÓN
+            Container(
+              // color: Colors.white,
+              child: Row(
+                children: [
+                  Text(
+                    "Dirección: ",
+                    style: GoogleFonts.manrope(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.grey.shade600),
+                  ),
+                  Container(
+                    //color: Colors.green,
+                    width: 280.5.w,
+                    child: Text(
+                      "Los Aálamos -Socabaya - Mz 3 - Av . Siempre viva",
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.manrope(
+                          fontSize: 14.sp, color: Colors.grey.shade600),
+                    ),
+                  )
+                ],
+              ),
+            ),
+
+            SizedBox(
+              height: 20.h,
+            ),
+
+            // CONTENIDO DEL PEDIDO
+            Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Resumen",
+                    style: GoogleFonts.manrope(
+                        fontSize: 14.sp, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    height: 10.h,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        height: 50.w,
+                        width: 145.w,
+                        //color: Colors.amber,
+                        child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 10,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                height: 50.w,
+                                width: 50.w,
+                                decoration: BoxDecoration(
+                                    color: const Color.fromARGB(
+                                        255, 233, 233, 233),
+                                    borderRadius: BorderRadius.circular(50.r),
+                                    image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage(
+                                            'lib/assets/imagenes/bodegon.png'))),
+                              );
+                            }),
+                      ),
+                      Text(
+                        "S/.999.0",
+                        style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.w500, fontSize: 20.sp),
+                      )
+                    ],
+                  ),
                 ],
               ),
             ),
             SizedBox(
-              height: 15.h,
+              height: 30,
             ),
-            // CONTENIDO
+            // TIMELINE ESTADO PEDIDO
             Container(
               padding: EdgeInsets.only(left: 0.r, right: 0.r),
               width: 360.w,
               height: 50.h,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: const Color.fromARGB(255, 240, 255, 236),
                   borderRadius: BorderRadius.circular(20.r)),
               child: Row(children: [
                 Container(
                   width: 50.w,
                   height: 50.w,
                   decoration: BoxDecoration(
-                      color: Colors.amber,
+                      color: Colors.yellowAccent,
                       borderRadius: BorderRadius.circular(50.r)),
                   child: Icon(
                     Icons.timer_outlined,
@@ -130,96 +216,87 @@ Widget pedido() {
               ]),
             ),
             SizedBox(
-              height: 15.h,
+              height: 25,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Fecha: 24/05",
-                        style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.bold, fontSize: 14.sp),
-                      ),
-                      Text(
-                        "Hora: 8:00 am",
-                        style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.w500, fontSize: 14.sp),
-                      ),
-                      Text(
-                        "Cantidad:3",
-                        style: GoogleFonts.manrope(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "Llega entre: 8:45 am - 11:00 am",
-                        style: GoogleFonts.manrope(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                            color: Color.fromRGBO(1, 37, 255, 1)),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(20.r)),
-                  child: Chip(
-                    // shadowColor: Colors.amber,
-                    label: Text(
-                      "pendiente",
-                      style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.sp,
-                          color: Color.fromRGBO(1, 37, 255, 1)),
-                    ),
-                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-                  ),
-                )
-              ],
-            ),
-            SizedBox(
-              height: 10.h,
-            ),
-            Container(
-              color: Colors.white,
-              child: Row(
-                children: [
-                  Text(
-                    "Dirección: ",
-                    style: GoogleFonts.manrope(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.grey.shade600),
-                  ),
-                  Container(
-                    //color: Colors.green,
-                    width: 280.5.w,
-                    child: Text(
-                      "Los Aálamos -Socabaya - Mz 3 - Av . Siempre viva",
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                          fontSize: 14.sp, color: Colors.grey.shade600),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 10.h,
-            ),
+
+            // BOTÓN DE PEDIDO ANULAR
             Container(
                 width: 1.sw,
                 child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)),
+                            child: Container(
+                              height: 1.sh / 2.5,
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      height: 120.w,
+                                      width: 120.w,
+                                      child: Icon(
+                                        Icons.cancel_outlined,
+                                        color: Colors.red,
+                                        size: 120.sp,
+                                      ),
+                                    ),
+                                    /* Icon(
+                        Icons.check_circle_outline,
+                        size: 60.sp,
+                        color: Colors.lightGreen,
+                      ),*/
+                                    SizedBox(height: 20),
+                                    Text(
+                                      "¿Deseas anular el pedido?",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        color: Color.fromRGBO(1, 37, 255, 1),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 20.sp,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20.h),
+                                    SizedBox(height: 30.h),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        side: BorderSide(
+                                            color:
+                                                Color.fromRGBO(1, 37, 255, 1)),
+                                      ),
+                                      child: Text(
+                                        "Continuar",
+                                        style: GoogleFonts.manrope(
+                                          fontWeight: FontWeight.w500,
+                                          color: Color.fromRGBO(1, 37, 255, 1),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        // carritProvider.deleteCarrito();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: BorderSide(color: Colors.grey.shade300, width: 1),
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        side: BorderSide(
+                            color: const Color.fromARGB(255, 255, 54, 54),
+                            width: 1),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.r))),
@@ -229,15 +306,14 @@ Widget pedido() {
                         Text(
                           "Anular pedido",
                           style: GoogleFonts.manrope(
-                              fontSize: 14.sp, color: Colors.red.shade200),
+                              fontSize: 14.sp,
+                              color: const Color.fromARGB(255, 255, 54, 54)),
                         ),
                         SizedBox(
                           width: 10.w,
                         ),
-                        Icon(
-                          Icons.cancel_outlined,
-                          color: Colors.red.shade200,
-                        )
+                        Icon(Icons.cancel_outlined,
+                            color: const Color.fromARGB(255, 255, 54, 54))
                       ],
                     )))
           ],

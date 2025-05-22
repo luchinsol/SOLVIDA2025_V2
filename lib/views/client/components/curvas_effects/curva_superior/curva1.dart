@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app2025v2/models/banner_model.dart';
 import 'package:app2025v2/models/evento_model.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_superior/clipper1.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class Curva1 extends StatelessWidget {
   Curva1({super.key, required this.currentIndex, required this.fondo});
 
   Widget build(BuildContext context) {
+    final carritoProvider = context.watch<CarritoProvider>();
     return ClipPath(
       clipper: MyCustomClipper(),
       child: Container(
@@ -72,17 +74,19 @@ class Curva1 extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(50.r)),
                             child: badges.Badge(
                                 position: badges.BadgePosition.topEnd(
-                                    top: -1, end: -1),
+                                    top: -12, end: -10),
                                 badgeContent: Padding(
                                   padding: const EdgeInsets.all(3.0),
                                   child: Text(
-                                    '3',
+                                    '${carritoProvider.totalItems}',
                                     style: GoogleFonts.manrope(
                                         color: Color.fromRGBO(1, 37, 255, 1),
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                showBadge: true,
+                                showBadge: carritoProvider.totalItems > 0
+                                    ? true
+                                    : false,
                                 badgeStyle: badges.BadgeStyle(
                                     borderRadius: BorderRadius.circular(4),
                                     borderSide: BorderSide(
@@ -92,6 +96,7 @@ class Curva1 extends StatelessWidget {
                                         255, 255, 255, 255)),
                                 child: IconButton(
                                   onPressed: () {
+                                    context.push('/carrito');
                                     print("Carrita");
                                   },
                                   icon: Icon(
