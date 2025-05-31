@@ -1,3 +1,5 @@
+import 'package:app2025v2/models/producto_model.dart';
+import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/views/client/components/categorias.dart';
@@ -19,13 +21,20 @@ class SubCategoria extends StatefulWidget {
 
 class _SubCategoriaState extends State<SubCategoria> {
   int selectedIndex = 0;
+  List<dynamic> todoslosProductos = [];
 
-  final List<String> chips = ['Todos', 'promocion', 'producto'];
+  // final List<String> chips = ['Todos', 'promocion', 'producto'];
   @override
   Widget build(BuildContext context) {
     final seccionSub =
         context.watch<SubcategoriaProvider>().allproductossubcategoria;
-    final items = context.watch<SubcategoriaProvider>().itemsFiltrados;
+    final promociones = seccionSub?.promociones;
+    final productos = seccionSub?.productos;
+    todoslosProductos = [
+      if (productos != null) ...productos,
+      if (promociones != null) ...promociones,
+    ];
+
     final carritoProvider = context.watch<CarritoProvider>();
 
     return Scaffold(
@@ -47,11 +56,22 @@ class _SubCategoriaState extends State<SubCategoria> {
                     size: 13.sp,
                   ))),
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '${seccionSub?.nombre}',
                 style: GoogleFonts.manrope(fontSize: 16.sp),
+              ),
+              Container(
+                width: 30.w,
+                height: 30.h,
+                decoration: BoxDecoration(
+                    //color: Colors.amber,
+                    image: DecorationImage(
+                        image: NetworkImage(seccionSub!.icono))),
+              ),
+              SizedBox(
+                width: 1.sw - 290.0.w,
               ),
               badges.Badge(
                   position: badges.BadgePosition.topEnd(top: -1, end: -1),
@@ -85,81 +105,62 @@ class _SubCategoriaState extends State<SubCategoria> {
           ),
         ),
         body: Padding(
-          padding: EdgeInsets.only(left: 27.r, top: 21.r, right: 27.r),
-          child: Column(
-            children: [
-              // FILTROS
-              Row(
-                children: List.generate(chips.length, (index) {
-                  final bool isSelected = selectedIndex == index;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedIndex = index;
-                        });
-                        Provider.of<SubcategoriaProvider>(context,
-                                listen: false)
-                            .filtrarTipo(chips[index]);
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.orange : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                        child: Text(
-                          chips[index],
-                          style: GoogleFonts.manrope(
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.grey.shade600,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              SizedBox(
-                height: 23.h,
-              ),
-
-              // CUERPO DEL GRID
-
-              Container(
-                height: 1.sh - 198.h,
-                child: GridView.count(
-                  crossAxisCount: 2, // 2 columnas
-                  crossAxisSpacing: 1,
-                  mainAxisSpacing: 5,
-                  childAspectRatio: 0.6, // alto/anchura
-                  children: List.generate(items.length, (index) {
-                    final actualProducto = items[index];
-                    return tarjeta_sub(
-                        context: context,
-                        sub_nombre: seccionSub!.nombre,
-                        alto: 300,
-                        ancho: 169,
-                        separacion_tarjeta: 0,
-                        ima_alto: 200,
-                        ima_ancho: 200,
-                        item: actualProducto);
-
-                    //return tarjeta_sub(context, 300, 169, 0, 200, 200);
-                  }),
+          padding: EdgeInsets.only(left: 27.r, top: 0.r, right: 27.r),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 23.h,
                 ),
-              )
-            ],
+
+                // CUERPO DEL GRID
+                //Text("Productos y Promociones"),
+
+                Container(
+                  //color: Colors.amber,
+                  height: 1.sh - 150.h,
+                  child: GridView.count(
+                    crossAxisCount: 2, // 2 columnas
+                    crossAxisSpacing: 1,
+                    mainAxisSpacing: 5,
+                    childAspectRatio: 175 / 350, // alto/anchura
+                    children: List.generate(todoslosProductos.length, (index) {
+                      final actualProducto = todoslosProductos[index];
+                      if (actualProducto is ProductoModel) {
+                        return tarjeta_sub(
+                            context: context,
+                            //  sub_nombre: seccionSub!.nombre,
+                            alto: 350,
+                            ancho: 175,
+                            separacion_tarjeta: 0,
+                            ima_alto: 200,
+                            ima_ancho: 200,
+                            item: actualProducto,
+                            cajatextoalto: 75,
+                            cajatextoancho: 130);
+                      } else if (actualProducto is PromocionModel) {
+                        return tarjeta_sub(
+                            context: context,
+                            // sub_nombre: seccionSub!.nombre,
+                            alto: 350,
+                            ancho: 175,
+                            separacion_tarjeta: 0,
+                            ima_alto: 200,
+                            ima_ancho: 200,
+                            item: actualProducto,
+                            cajatextoalto: 75,
+                            cajatextoancho: 130);
+                      } else {
+                        // fallback por si viene un tipo inesperado
+                        return const SizedBox.shrink();
+                      }
+
+                      //return tarjeta_sub(context, 300, 169, 0, 200, 200);
+                    }),
+                  ),
+                )
+              ],
+            ),
           ),
         ));
   }

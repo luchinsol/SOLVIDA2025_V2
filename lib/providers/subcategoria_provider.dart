@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:app2025v2/models/generico_model.dart';
+import 'package:app2025v2/models/producto_model.dart';
+import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/models/subcategoria_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -11,9 +12,8 @@ class SubcategoriaProvider extends ChangeNotifier {
   SubcategoriaModel? _subcategoria;
   SubcategoriaModel? get allproductossubcategoria => _subcategoria;
   String microurl = dotenv.env['MICRO_URL'] ?? '';
-  String _filtro = 'Todos'; // Nuevo estado
-  String get filtroActual => _filtro;
-  List<GenericoModel> get allItemsGenerico {
+
+/*  List<GenericoModel> get allItemsGenerico {
     if (_subcategoria == null) return [];
     return [
       ..._subcategoria!.productos.map((p) => GenericoModel.fromProducto(p)),
@@ -26,29 +26,19 @@ class SubcategoriaProvider extends ChangeNotifier {
     return allItemsGenerico
         .where((item) => item.tipo.toLowerCase() == _filtro.toLowerCase())
         .toList();
-  }
+  }*/
 
-  void filtrarTipo(String tipo) {
-    // Asegura valores compatibles
-    if (tipo == 'Productos') {
-      _filtro = 'producto';
-    } else if (tipo == 'Promos') {
-      _filtro = 'promocion';
-    } else {
-      _filtro = 'Todos';
-    }
-    notifyListeners();
-  }
-
-  // MÉTODOS
-  Future<void> getSubcategoria(int id) async {
+  // MÉTODO DE SUBCATEGORIA ESPECIFICA SUB_ID, ZONA_ID
+  Future<void> getSubcategoria(int id, int? zonatrabajoCliente) async {
     try {
+      print(".....SUBCTEGORIA ESPECIFICA zona:$zonatrabajoCliente");
       // 1 => sub / 1 => ubicacion
-      var res = await http
-          .get(Uri.parse('$microurl/all_subcategoria_productos/${id}/1'));
+      var res = await http.get(Uri.parse(
+          '$microurl/all_subcategoria_productos/${id}/${zonatrabajoCliente}'));
       if (res.statusCode == 200) {
         var data = jsonDecode(res.body);
         _subcategoria = SubcategoriaModel.fromJson(data);
+
         print("dentro del subcategoria provider");
         print("${_subcategoria?.nombre}");
         notifyListeners();

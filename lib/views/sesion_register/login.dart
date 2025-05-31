@@ -1,10 +1,16 @@
 //import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app2025v2/models/cliente_model.dart';
+import 'package:app2025v2/models/clientecompleto_model.dart';
+import 'package:app2025v2/models/usuario_model.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -40,6 +46,7 @@ class _LoginState extends State<Login> {
     }
   }
 
+// LOGIN MANUAL + FIREBASE
   Future<void> _loginmanual() async {
     showDialog(
       context: context,
@@ -60,8 +67,29 @@ class _LoginState extends State<Login> {
         password: _password.text,
       );
       print("Login exitoso: ${userCred.user!.uid}");
+
+      await Provider.of<ClienteProvider>(context, listen: false)
+          .fetchClientePorFirebaseUid(userCred.user!.uid);
       if (mounted) Navigator.of(context).pop(); // Cierra el diálogo
-      context.go('/previa');
+
+      // VERIFICAR SI HAY O NO UBICACION
+      final cliente =
+          Provider.of<ClienteProvider>(context, listen: false).clienteActual;
+
+      final ubicacionProvider =
+          Provider.of<UbicacionProvider>(context, listen: false);
+      await ubicacionProvider.getUbicaciones(cliente?.cliente.id!);
+      int cantidadUbicacionesCliente = ubicacionProvider.allubicaciones.length;
+      print("tiene ubicacion o no ?");
+      if (cantidadUbicacionesCliente > 0) {
+        await ubicacionProvider.cargarUbicacionSeleccionada();
+
+        context.go('/barracliente');
+      } else {
+        context.go('/previa');
+      }
+
+      //  context.go('/previa');
     } catch (e) {
       print("Error de login: $e");
       if (mounted)
@@ -72,33 +100,33 @@ class _LoginState extends State<Login> {
     }
   }
 
-  Future<void> signinWithGoogle() async {
+  Future<void> signinWithGoogle(BuildContext context) async {
+    print(".....DENTRO DEL GOOGLE SIGN");
     try {
-      if (!mounted) return; // Verifica que el widget siga activo
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
+        builder: (_) => Center(
+            child: CircularProgressIndicator(
+          color: Colors.white,
+        )),
       );
-
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email'],
         signInOption: SignInOption.standard,
       );
+      print(".....DENTRO DEL GOOGLE SIGN 2");
 
       await googleSignIn.signOut();
       await Future.delayed(const Duration(milliseconds: 100));
 
       GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
 
-      if (googleUser == null) return;
+      print(".....DENTRO DEL GOOGLE SIGN");
+      if (googleUser == null) return; // Usuario canceló
 
-      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      GoogleSignInAuthentication? googleAuth = await googleUser.authentication;
 
       AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -107,16 +135,55 @@ class _LoginState extends State<Login> {
 
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
+      print("..........USUARIO GOOGLE $user");
+      final clienteProvider =
+          Provider.of<ClienteProvider>(context, listen: false);
+
+      await clienteProvider.fetchClientePorFirebaseUid(user.user!.uid);
+
+      print("📦 Resultado del fetch: ${clienteProvider.clienteActual}");
+
+      if (clienteProvider.clienteActual == null) {
+        print("⚠️ Cliente no encontrado, registrando...");
+
+        await clienteProvider.postClienteData(
+          email: user.user!.email ?? '-',
+          telefono: user.user!.phoneNumber ?? '-',
+          nombres: user.additionalUserInfo?.profile?['given_name'] ?? '-',
+          apellidos: user.additionalUserInfo?.profile?['family_name'] ?? '-',
+          foto: user.user!.photoURL,
+          firebase_uid: user.user!.uid,
+        );
+
+        await clienteProvider.fetchClientePorFirebaseUid(user.user!.uid);
+        print("✅ Cliente registrado y recargado");
+      }
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('fotito', user.user!.photoURL ?? '');
 
       if (!mounted) return;
-      context.go('/previa');
+
+// VERIFICAR SI HAY O NO UBICACION
+      final cliente =
+          Provider.of<ClienteProvider>(context, listen: false).clienteActual;
+      final ubicacionProvider =
+          Provider.of<UbicacionProvider>(context, listen: false);
+      await ubicacionProvider.getUbicaciones(cliente?.cliente.id!);
+
+      int cantidadUbicacionesCliente = ubicacionProvider.allubicaciones.length;
+
+      if (cantidadUbicacionesCliente > 0) {
+        await ubicacionProvider.cargarUbicacionSeleccionada();
+        context.go('/barracliente');
+      } else {
+        context.go('/previa');
+      }
+
+      // await Future.delayed(Duration(seconds: 3));
+      //context.go('/previa');
     } catch (e) {
       if (!mounted) return;
-      Navigator.of(context, rootNavigator: true)
-          .pop(); // Cierra el dialog si hubo error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Error al iniciar sesión con Google")),
       );
@@ -186,6 +253,7 @@ class _LoginState extends State<Login> {
                                   width: 1.sw - 100.w,
                                   child: TextFormField(
                                     controller: _username,
+                                    keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
                                       /*contentPadding: EdgeInsets.symmetric(
                                           horizontal: 20.sp, vertical: 16.sp),*/
@@ -331,7 +399,7 @@ class _LoginState extends State<Login> {
                       height: 50.h,
                       child: ElevatedButton(
                         onPressed: () {
-                          signinWithGoogle();
+                          signinWithGoogle(context);
 
                           // Forma CORRECTA de navegar:
                         },
@@ -386,7 +454,7 @@ class _LoginState extends State<Login> {
                         ),
                         TextButton(
                             onPressed: () {
-                              context.go('/register');
+                              context.push('/register');
                             },
                             child: Text(
                               "Regístrate aquí",

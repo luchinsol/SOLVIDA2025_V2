@@ -1,23 +1,24 @@
 import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
-import 'package:app2025v2/providers/generico_provider.dart';
+import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-Widget tarjeta_sub({
-  required BuildContext context,
-  required String sub_nombre,
-  required double alto,
-  required double ancho,
-  required double separacion_tarjeta,
-  required double ima_alto,
-  required double ima_ancho,
-  required dynamic item,
-}) {
+Widget tarjeta_sub(
+    {required BuildContext context,
+    // required String sub_nombre,
+    required double alto,
+    required double ancho,
+    required double separacion_tarjeta,
+    required double ima_alto,
+    required double ima_ancho,
+    required dynamic item,
+    required double cajatextoalto,
+    required double cajatextoancho}) {
   return Padding(
     padding: const EdgeInsets.all(1.0),
     child: Row(
@@ -41,34 +42,16 @@ Widget tarjeta_sub({
           child: Padding(
             padding: EdgeInsets.only(top: 6.0.r, left: 14.r, right: 14.r),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Stack(
                   children: [
                     GestureDetector(
                       onTap: () {
-                        if (item is ProductoModel) {
-                          print("soy producto");
-                          print(item);
-                          print(item.id);
-                          print(item.nombre);
-                          print(item.valoracion);
-                          print(item.fotos);
-                          print(item.estilo);
-                          Provider.of<GenericoProvider>(context, listen: false)
-                              .setGenerico(item, sub_nombre);
-                        } else if (item is PromocionModel) {
-                          print("SOy promo");
-                          print(item);
-                          print(item.id);
-                          print(item.nombre);
-                          print(item.valoracion);
-                          print(item.fotos);
-                          print(item.estilo);
-                          Provider.of<GenericoProvider>(context, listen: false)
-                              .setGenerico(item, sub_nombre);
-                        }
                         //  Provider<ProductoGenerico>.context().llamarProducto(item.id);
+                        Provider.of<DetalleProductoProvider>(context,
+                                listen: false)
+                            .cargar(item);
                         context.push('/detalle_producto');
                         //print("hola soy producto ${item.id}");
                       },
@@ -78,28 +61,28 @@ Widget tarjeta_sub({
                         decoration: BoxDecoration(
                           //color: Colors.white,
                           image: DecorationImage(
-                            image: NetworkImage('${item.fotos[0]}'),
+                            image: NetworkImage(item.fotos.first),
                             fit: BoxFit.contain,
                           ),
                         ),
                       ),
                     ),
-                    item.descuento != 0
+                    item.descuento > 0
                         ? Positioned(
                             top: 0.h,
-                            right: -0.0.w,
+                            left: 2.0.w,
                             child: Container(
-                              width: 45.w,
-                              height: 45.h,
+                              width: 50.w,
+                              height: 25.h,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color.fromARGB(255, 255, 245, 54),
                                 borderRadius: BorderRadius.circular(8.r),
                                 border: Border.all(
                                     color: Color.fromRGBO(1, 37, 255, 1)),
                               ),
                               child: Center(
                                 child: Text(
-                                  "${item.descuento}",
+                                  "-20%",
                                   style: GoogleFonts.manrope(
                                     fontSize: 14.sp,
                                     color: Color.fromRGBO(1, 37, 255, 1),
@@ -117,12 +100,30 @@ Widget tarjeta_sub({
                   child: Divider(height: 2),
                 ),
                 SizedBox(height: 7.h),
-                Text(
-                  "${item.nombre}",
-                  style: GoogleFonts.manrope(
-                      fontSize: 14.sp, fontWeight: FontWeight.bold),
+
+                // CAJA DE TEXTO
+                Container(
+                  height: cajatextoalto.h,
+                  width: cajatextoancho.h,
+                  // color: Colors.amber,
+                  child: Column(
+                    children: [
+                      Text(
+                        "${item.nombre} 700ml",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                            fontSize: 14.sp, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        "15 Und / Pqte",
+                        style: GoogleFonts.manrope(
+                            fontSize: 14.sp, fontWeight: FontWeight.w300),
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
+
+                /* Row(
                   children: [
                     Text(
                       "${item.valoracion}",
@@ -135,13 +136,13 @@ Widget tarjeta_sub({
                       color: Colors.amber,
                     )
                   ],
-                ),
+                ),*/
                 SizedBox(height: 8.h),
                 Container(
                   height: 24.h,
                   width: 108.w,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color.fromARGB(255, 237, 237, 237),
                     borderRadius: BorderRadius.circular(20.r),
                   ),
                   child: Padding(
@@ -150,14 +151,9 @@ Widget tarjeta_sub({
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Und",
+                          "S/. ${item.precio}",
                           style: GoogleFonts.manrope(
-                              fontSize: 12.sp, fontWeight: FontWeight.w400),
-                        ),
-                        Text(
-                          "S/.${item.precio}",
-                          style: GoogleFonts.manrope(
-                              fontSize: 12.sp, fontWeight: FontWeight.bold),
+                              fontSize: 15.sp, fontWeight: FontWeight.bold),
                         ),
                         Container(
                             width: 24.w,
@@ -168,7 +164,7 @@ Widget tarjeta_sub({
                             ),
                             child: GestureDetector(
                               onTap: () {
-                                print("hoal");
+                                //print("hoal");
                                 Provider.of<CarritoProvider>(context,
                                         listen: false)
                                     .agregarProducto(
@@ -181,7 +177,7 @@ Widget tarjeta_sub({
                               child: Icon(
                                 Icons.add,
                                 color: Colors.white,
-                                size: 14.sp,
+                                size: 20.sp,
                               ),
                             ))
                       ],

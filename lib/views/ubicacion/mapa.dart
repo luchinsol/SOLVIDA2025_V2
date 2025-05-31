@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class Mapa extends StatefulWidget {
   const Mapa({Key? key}) : super(key: key);
@@ -28,8 +32,14 @@ class _MapaState extends State<Mapa> {
     super.initState();
     // _loadMapStyle();
     _cargarIconoPersonalizado();
-    _obtenerCoordenadasDeDireccion(
-        "Plaza Pampa de Camarones, HCQH+QRM, Av. Brasil S/N, Pampa de Camarones, Yanahuara Cercado De, Arequipa 04013");
+    final ubicacionProvier =
+        Provider.of<UbicacionProvider>(context, listen: false).getUbicaiontemp;
+    final direccionCompleta =
+        "${ubicacionProvier?.departamento} ${ubicacionProvier?.distrito} ${ubicacionProvier?.direccion} ${ubicacionProvier?.numero_manzana}";
+    print("...................UBICACION TEMPORAL");
+    print(direccionCompleta);
+    print("........................FIN");
+    _obtenerCoordenadasDeDireccion(direccionCompleta);
   }
 
   Future<void> _cargarIconoPersonalizado() async {
@@ -80,6 +90,10 @@ class _MapaState extends State<Mapa> {
 
   @override
   Widget build(BuildContext context) {
+    final ubicacionProvider =
+        context.watch<UbicacionProvider>().getUbicaiontemp;
+    final clienteProvider = context.watch<ClienteProvider>().clienteActual;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -139,7 +153,7 @@ class _MapaState extends State<Mapa> {
                             Chip(
                                 backgroundColor: Color.fromRGBO(1, 37, 255, 1),
                                 label: Text(
-                                  'Novia',
+                                  '${ubicacionProvider?.etiqueta}',
                                   style: GoogleFonts.manrope(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 11.sp,
@@ -148,11 +162,12 @@ class _MapaState extends State<Mapa> {
                             Container(
                               width: 200.w,
                               child: Text(
-                                "Av. Brasil - Pampa de camarones - Sachaca 448484",
+                                "${ubicacionProvider?.distrito} ${ubicacionProvider?.direccion}",
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: GoogleFonts.manrope(
-                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.sp,
                                 ),
                               ),
                             )
@@ -190,15 +205,15 @@ class _MapaState extends State<Mapa> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          height: 20.w,
-                          width: 20.w,
+                          height: 40.w,
+                          width: 40.w,
                           decoration: BoxDecoration(
                               color: Colors.amber,
                               borderRadius: BorderRadius.circular(50.r)),
                           child: Icon(
                             Icons.location_pin,
                             color: Colors.red,
-                            size: 16.sp,
+                            size: 30.sp,
                           ),
                         ),
                         SizedBox(
@@ -207,8 +222,7 @@ class _MapaState extends State<Mapa> {
                         Text(
                           "Ajusta con el pin si es necesario",
                           style: GoogleFonts.manrope(
-                            fontSize: 11.sp,
-                          ),
+                              fontSize: 13.sp, fontWeight: FontWeight.bold),
                         )
                       ],
                     ),
@@ -219,7 +233,43 @@ class _MapaState extends State<Mapa> {
                       width: 350.w,
                       height: 50.h,
                       child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            print("...POSTEANDO ...");
+                            print("${ubicacionProvider}");
+                            print("${clienteProvider?.cliente.id}");
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            );
+                            print("...id ubicacon ");
+                            print("...........${ubicacionProvider?.id}");
+                            if (ubicacionProvider?.id == null) {
+                              print("...dentro de POST id ubi");
+                              await Provider.of<UbicacionProvider>(context,
+                                      listen: false)
+                                  .postNewUbicacion(
+                                      distrito: ubicacionProvider?.distrito,
+                                      direccion: ubicacionProvider?.direccion,
+                                      etiqueta: ubicacionProvider?.etiqueta,
+                                      latitud: _ubicacionSeleccionada?.latitude,
+                                      longitud:
+                                          _ubicacionSeleccionada?.longitude,
+                                      cliente_id: clienteProvider?.cliente.id);
+                            } else {
+                              print("soy un EDIT");
+                            }
+
+                            Navigator.pop(context);
+
+                            context.go('/barracliente');
+                          },
                           style: ElevatedButton.styleFrom(
                               shadowColor:
                                   const Color.fromARGB(255, 116, 116, 116),

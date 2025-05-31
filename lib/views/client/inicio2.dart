@@ -5,9 +5,11 @@ import 'package:app2025v2/models/subcategoria_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:app2025v2/views/client/components/categorias.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_inferior/curva2.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_superior/clipper1.dart';
@@ -78,21 +80,25 @@ class _Inicio2State extends State<Inicio2> {
     ];
   }
 
-  final List<String> images = [
-    'lib/assets/imagenes/bidon.png',
-    'lib/assets/imagenes/vaso.png',
-    'lib/assets/imagenes/torta.png',
-    'lib/assets/imagenes/moto.png',
-    'lib/assets/imagenes/logo.png',
-    'lib/assets/imagenes/humanbidon.png',
-  ];
-
   void _scrollArriba() {
     _scrollControllerInicio.animateTo(
       0,
       duration: Duration(milliseconds: 500),
       curve: Curves.easeOut,
     );
+  }
+
+  String? telefonoValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'El teléfono es obligatorio';
+    }
+    // Elimina espacios, por si acaso
+    final telefono = value.trim();
+    final regex = RegExp(r'^\d{9}$');
+    if (!regex.hasMatch(telefono)) {
+      return 'El teléfono debe tener exactamente 9 dígitos';
+    }
+    return null; // válido
   }
 
   @override
@@ -106,15 +112,165 @@ class _Inicio2State extends State<Inicio2> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _scrollController2 = ScrollController();
   final ScrollController _scrollControllerInicio = ScrollController();
+  final TextEditingController _telefonoController = TextEditingController();
   late Timer _scrollTimer;
   int _currentIndex = 0;
+  final GlobalKey<FormState> _formKeyTelefono = GlobalKey<FormState>();
+
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
   final notificationsService = NotificationsService(); // Obtén la instancia
 
+  // POP UP TELÉFONO
+  void _mostrarPopUp(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true, // 👈 Esto es clave
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKeyTelefono,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Agrega tu número de teléfono",
+                      style: GoogleFonts.manrope(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Icon(Icons.phone_android_outlined),
+                      Container(
+                        width: 1.sw - 80.w,
+                        child: TextFormField(
+                          keyboardType: TextInputType.number,
+                          controller: _telefonoController,
+                          style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11.sp,
+                              color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: 'Ingresa tu teléfono',
+                            hintStyle: GoogleFonts.manrope(fontSize: 11.sp),
+                            // prefixIcon: Icon(Icons.abc),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(15)),
+                            labelText: "Teléfono",
+                            labelStyle: GoogleFonts.manrope(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11.sp),
+                            filled: true,
+                            fillColor: Colors.grey.shade200,
+
+                            //errorText: _errorText,
+                            helperText: _telefonoController.text.isEmpty
+                                ? "Debe tener 9 dígitos"
+                                : null,
+                          ),
+                          validator: telefonoValidator,
+                          onChanged: (value) {
+                            setState(
+                                () {}); // para que el helperText se actualice mientras escribes
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Container(
+                    width: 1.sw,
+                    child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKeyTelefono.currentState!.validate()) {
+                            final telefono = _telefonoController.text.trim();
+                            await Provider.of<ClienteProvider>(context,
+                                    listen: false)
+                                .putTelefono(telefono);
+                          }
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromRGBO(1, 37, 255, 1)),
+                        child: Text(
+                          "Agregar",
+                          style: GoogleFonts.manrope(
+                              fontSize: 14.sp,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        )),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInit) {
+      final clienteProvider =
+          Provider.of<ClienteProvider>(context, listen: false);
+
+      final firebaseUid = clienteProvider.clienteActual?.user.firebaseUid;
+
+      if (firebaseUid != null) {
+        // Verificamos en la API si ya tiene teléfono actualizado
+        clienteProvider.fetchClientePorFirebaseUid(firebaseUid).then((_) {
+          final telefono = clienteProvider.clienteActual?.user.telefono;
+          if (telefono == null ||
+              telefono.trim() == '-' ||
+              telefono.trim().isEmpty) {
+            // Mostramos el popup solo si NO hay teléfono actualizado
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _mostrarPopUp(context);
+            });
+          }
+        });
+      }
+
+      _isInit = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    final clienteProvider =
+        Provider.of<ClienteProvider>(context, listen: false).clienteActual;
+
+    // Llama una vez para obtener los eventos
+    /* WidgetsBinding.instance.addPostFrameCallback((_) {
+      final clienteID = clienteProvider?.cliente.id;
+      if (mounted) {
+        Provider.of<UbicacionProvider>(context, listen: false)
+            .getUbicaciones(clienteID!);
+      }
+    });*/
+
+    // Llama una vez para obtener los eventos
+    /* WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<UbicacionProvider>(context, listen: false)
+            .cargarUbicacionSeleccionada();
+      }
+    });*/
 
     // Llama una vez para obtener los eventos
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -126,8 +282,15 @@ class _Inicio2State extends State<Inicio2> {
     // Llama una vez para obtener los eventos
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        print("....cliente ...  ubicacion");
+
+        final ubicacionCliente =
+            Provider.of<UbicacionProvider>(context, listen: false)
+                .allubicaciones
+                .first;
+// SE ENVIA NULL POR DEFAULT
         Provider.of<CategoriaInicioProvider>(context, listen: false)
-            .getCategoriaSubcategoria(null);
+            .getCategoriaSubcategoria(null, ubicacionCliente.id!);
       }
     });
 
@@ -138,6 +301,13 @@ class _Inicio2State extends State<Inicio2> {
             .getTemperatura();
       }
     });
+
+    /*Future.microtask(() {
+      final ubicacionSeleccionada =
+          Provider.of<UbicacionProvider>(context, listen: false).idSeleccionado;
+      Provider.of<UbicacionProvider>(context, listen: false)
+          .verificacionUbicacionSeleccionada(ubicacionSeleccionada!);
+    });*/
 
     Future.microtask(() {
       Provider.of<CategoriaProvider>(context, listen: false).getCategorias();
@@ -181,6 +351,8 @@ class _Inicio2State extends State<Inicio2> {
         context.watch<CategoriaInicioProvider>().allcategoria_subcategoria;
     //String nombre
     final carritoProvider = context.watch<CarritoProvider>();
+    //bool estoyenreparto = context.watch<UbicacionProvider>().fueradelarea;
+    final ubicacionProvider = context.watch<UbicacionProvider>();
 
     // ⛔ Asegurarse de que hay eventos antes de seguir
     if (eventos.isEmpty) {
@@ -321,16 +493,25 @@ class _Inicio2State extends State<Inicio2> {
                               style: GoogleFonts.manrope(
                                   fontWeight: FontWeight.bold, fontSize: 14.sp),
                             ),
-                            TextButton(
-                                onPressed: () {},
+
+                            // TERNARIO PARA UBICACIÓN
+                            /*  TextButton(
+                                onPressed: ubicacionProvider.dentrodeArea
+                                    ? () {
+                                        context.push('/todocategoria');
+                                      }
+                                    : null,
                                 child: Text(
                                   "ver más",
                                   style: GoogleFonts.manrope(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14.sp,
                                       color: Colors.grey.shade600),
-                                ))
+                                ))*/
                           ],
+                        ),
+                        SizedBox(
+                          height: 10.h,
                         ),
                         // LIST VIEW * OJO CATEGORIAS
                         Container(
@@ -353,7 +534,7 @@ class _Inicio2State extends State<Inicio2> {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: categorias.map((item) {
+                            children: categorias.take(3).map((item) {
                               return categoria(context, item);
                             }).toList(),
                           ),
@@ -376,220 +557,234 @@ class _Inicio2State extends State<Inicio2> {
                           },
                           child: Text('Mostrar Notificación'),
                         ),
-                        // NOVEDADES
-                        Text(
-                          "Novedades",
-                          style: GoogleFonts.manrope(
-                              fontWeight: FontWeight.w400, fontSize: 16.sp),
-                        ),
-                        SizedBox(
-                          height: 23.h,
-                        ),
-                        Container(
-                          height: 172.h,
-                          key: _imageKey,
-                          //color: Colors.pink,
-                          child: ListView.builder(
-                              controller: _pageController,
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 3,
-                              itemBuilder: (context, index) {
-                                return tarjetas(
-                                    '-20%',
-                                    'Paquetes 700ml S/.36 todo el año',
-                                    'Accesorios',
-                                    'lib/assets/imagenes/bodegon.png');
-                              }),
-                        ),
-                        SizedBox(
-                          height: 5.h,
-                        ),
-                        /*Center(
-                          child: SmoothPageIndicator(
-                            controller: _pageController,
-                            count: 3, // Número de páginas
-                            effect: ExpandingDotsEffect(
-                              dotHeight: 3.5.h,
-                              dotWidth: 15.w,
-                              activeDotColor:
-                                  const Color.fromARGB(255, 33, 51, 170),
-                              dotColor: Colors.grey.shade300,
-                            ),
-                          ),
-                        ),*/
 
-                        SizedBox(
-                          height: 15.h,
-                        ),
-
-                        // SUBCATEGORIA 1
-                        for (int i = 0;
-                            i < (categoriaInicio?.subcategorias.length ?? 0);
-                            i++) ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                categoriaInicio!
-                                    .subcategorias[i].nombre, // nombre
-                                style: GoogleFonts.manrope(
-                                  fontSize: 16.sp,
-                                ),
-                              ),
-                              TextButton(
-                                  onPressed: () async {
-                                    categoriaInicio.subcategorias[i];
-                                    print("-----------");
-                                    print("${categoriaInicio.nombre}");
-                                    print(
-                                        "${categoriaInicio.subcategorias[i].id}");
-                                    print(
-                                        "${categoriaInicio.subcategorias[i].nombre}");
-                                    print("-------------");
-                                    // DIÁLOGO DE ESPERA
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (BuildContext context) {
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                    // LLAMADA DE API
-                                    final idsubcategoria =
-                                        categoriaInicio.subcategorias[i].id;
-                                    await Provider.of<SubcategoriaProvider>(
-                                            context,
-                                            listen: false)
-                                        .getSubcategoria(idsubcategoria);
-
-                                    // SALIDA DEL DIÁLOGO ESPERA
-                                    Navigator.pop(context);
-
-                                    context.push('/subcategoria');
-                                    // se llama a un provider , donde se le pasa el
-                                    // id de la subcategori: localhost:20/subacta/{id}
-                                  },
-                                  child: Text(
-                                    "ver más",
-                                    style: GoogleFonts.manrope(
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade600),
-                                  ))
-                            ],
+                        // CONDICION DE UBICACION CON ZONA y que refresque el home
+                        if (ubicacionProvider.dentrodeArea) ...[
+                          // NOVEDADES
+                          Text(
+                            "Novedades",
+                            style: GoogleFonts.manrope(
+                                fontWeight: FontWeight.w400, fontSize: 16.sp),
                           ),
                           SizedBox(
-                            height: 10.h,
-                          ), // Subcategoria 1
-                          subcategoria(categoriaInicio!.subcategorias[i]),
+                            height: 23.h,
+                          ),
+                          Container(
+                            height: 172.h,
+                            key: _imageKey,
+                            //color: Colors.pink,
+                            child: ListView.builder(
+                                controller: _pageController,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: 3,
+                                itemBuilder: (context, index) {
+                                  return tarjetas(
+                                      '-20%',
+                                      'Paquetes 700ml S/.36 todo el año',
+                                      'Accesorios',
+                                      'lib/assets/imagenes/bodegon.png');
+                                }),
+                          ),
+                          SizedBox(
+                            height: 20.h,
+                          ),
 
-                          if (i == 0) ...[
-                            SizedBox(
-                              height: 50.h,
-                            ),
-
-                            //CONTAINER DE TEMPERATURA
-
-                            Stack(
-                              clipBehavior: Clip
-                                  .none, // ¡Esto es clave para que el vaso se salga!
+                          // SUBCATEGORIA 1
+                          for (int i = 0;
+                              i < (categoriaInicio?.subcategorias.length ?? 0);
+                              i++) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Container base (el rojo)
                                 Container(
-                                  width: 1.sw,
-                                  height: 140,
-                                  padding: EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(
-                                        255, 255, 253, 164),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  child: Row(
                                     children: [
-                                      Text('21°C',
-                                          style: GoogleFonts.manrope(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 40,
-                                              color: Colors.white)),
-                                      Text('¡Qué calor!',
-                                          style: GoogleFonts.manrope(
-                                              fontSize: 20.sp,
-                                              color: Colors.white)),
-                                      Text('Mantente siempre hidratado',
-                                          style: GoogleFonts.manrope(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14.sp,
-                                              color: Colors.white70)),
+                                      Text(
+                                        categoriaInicio!
+                                            .subcategorias[i].nombre, // nombre
+                                        style: GoogleFonts.manrope(
+                                          fontSize: 16.sp,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 5.w,
+                                      ),
+                                      Container(
+                                        width: 30.w,
+                                        height: 30.w,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: NetworkImage(
+                                                    categoriaInicio!
+                                                        .subcategorias[i]
+                                                        .icono))),
+                                      )
                                     ],
                                   ),
                                 ),
+                                TextButton(
+                                    onPressed: () async {
+                                      categoriaInicio.subcategorias[i];
+                                      print("-----------");
+                                      print("${categoriaInicio.nombre}");
+                                      print(
+                                          "${categoriaInicio.subcategorias[i].id}");
+                                      print(
+                                          "${categoriaInicio.subcategorias[i].nombre}");
+                                      print("-------------");
+                                      // DIÁLOGO DE ESPERA
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (BuildContext context) {
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                      // LLAMADA DE API
+                                      final idsubcategoria =
+                                          categoriaInicio.subcategorias[i].id;
+                                      final zonatrabajocliente =
+                                          ubicacionProvider.allubicaciones.first
+                                              .zonatrabajo_id;
+                                      print(
+                                          "zona trabajo cliente: $zonatrabajocliente");
 
-                                // Vaso que se sale del Container
-                                Positioned(
-                                  right:
-                                      15, // Ajusta este valor según tu diseño
-                                  top:
-                                      -30, // Puedes moverlo también hacia arriba si quieres
-                                  child: Container(
-                                    height: 200.w,
-                                    width: 140.h,
-                                    decoration: BoxDecoration(
-                                        //color: Colors.grey,
-                                        image: DecorationImage(
-                                            fit: BoxFit.cover,
-                                            image: AssetImage(
-                                                'lib/assets/imagenes/vaso.png'))),
-                                  ),
-                                ),
+                                      print("id subcategoria: $idsubcategoria");
+                                      await Provider.of<SubcategoriaProvider>(
+                                              context,
+                                              listen: false)
+                                          .getSubcategoria(idsubcategoria!,
+                                              zonatrabajocliente!);
+
+                                      // SALIDA DEL DIÁLOGO ESPERA
+                                      Navigator.pop(context);
+
+                                      context.push('/subcategoria');
+                                      // se llama a un provider , donde se le pasa el
+                                      // id de la subcategori: localhost:20/subacta/{id}
+                                    },
+                                    child: Text(
+                                      "ver más",
+                                      style: GoogleFonts.manrope(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade600),
+                                    ))
                               ],
                             ),
-
                             SizedBox(
-                              height: 28.h,
-                            ),
-                          ]
-                        ], // FIN DEL FOR
+                              height: 10.h,
+                            ), // Subcategoria 1
+                            subcategoria(categoriaInicio!.subcategorias[i]),
 
-                        SizedBox(
-                          height: 23.h,
-                        ),
+                            if (i == 0) ...[
+                              SizedBox(
+                                height: 50.h,
+                              ),
 
-                        // NOVEDADES
-                        Text(
-                          "Novedades",
-                          style: GoogleFonts.manrope(
-                              fontWeight: FontWeight.w400, fontSize: 16.sp),
-                        ),
-                        SizedBox(
-                          height: 23.h,
-                        ),
-                        Container(
-                          height: 172.h,
+                              //CONTAINER DE TEMPERATURA
 
-                          //color: Colors.pink,
-                          child: ListView.builder(
-                              controller: _pageController,
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 3,
-                              itemBuilder: (context, index) {
-                                return tarjetas(
-                                    '-20%',
-                                    'Paquetes 700ml S/.36 todo el año',
-                                    'Accesorios',
-                                    'lib/assets/imagenes/bodegon.png');
-                              }),
-                        ),
-                        SizedBox(
-                          height: 5.h,
-                        ),
-                        /*Center(
+                              Stack(
+                                clipBehavior: Clip
+                                    .none, // ¡Esto es clave para que el vaso se salga!
+                                children: [
+                                  // Container base (el rojo)
+                                  Container(
+                                    width: 1.sw,
+                                    height: 140,
+                                    padding: EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(
+                                          255, 216, 186, 125),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text('21°C',
+                                            style: GoogleFonts.manrope(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 40,
+                                                color: Colors.white)),
+                                        Text('¡Qué calor!',
+                                            style: GoogleFonts.manrope(
+                                                fontSize: 20.sp,
+                                                color: Colors.white)),
+                                        Text('Mantente siempre hidratado',
+                                            style: GoogleFonts.manrope(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14.sp,
+                                                color: Colors.white70)),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Vaso que se sale del Container
+                                  Positioned(
+                                    right:
+                                        15, // Ajusta este valor según tu diseño
+                                    top:
+                                        -30, // Puedes moverlo también hacia arriba si quieres
+                                    child: Container(
+                                      height: 200.w,
+                                      width: 140.h,
+                                      decoration: BoxDecoration(
+                                          //color: Colors.grey,
+                                          image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: AssetImage(
+                                                  'lib/assets/imagenes/vaso.png'))),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(
+                                height: 28.h,
+                              ),
+                            ]
+                          ], // FIN DEL FOR
+
+                          SizedBox(
+                            height: 23.h,
+                          ),
+
+                          // NOVEDADES
+                          Text(
+                            "Novedades",
+                            style: GoogleFonts.manrope(
+                                fontWeight: FontWeight.w400, fontSize: 16.sp),
+                          ),
+                          SizedBox(
+                            height: 23.h,
+                          ),
+                          Container(
+                            height: 172.h,
+
+                            //color: Colors.pink,
+                            child: ListView.builder(
+                                controller: _pageController,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: 3,
+                                itemBuilder: (context, index) {
+                                  return tarjetas(
+                                      '-20%',
+                                      'Paquetes 700ml S/.36 todo el año',
+                                      'Accesorios',
+                                      'lib/assets/imagenes/bodegon.png');
+                                }),
+                          ),
+                          SizedBox(
+                            height: 5.h,
+                          ),
+                          /*Center(
                           child: SmoothPageIndicator(
                             controller: _pageController,
                             count: 3, // Número de páginas
@@ -601,49 +796,141 @@ class _Inicio2State extends State<Inicio2> {
                               dotColor: Colors.grey.shade300,
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          height: 20.h,
                         ),*/
-                        // SUBCATEGORIAS
-
-                        SizedBox(
-                          height: 7.h,
-                        ),
-
-                        Transform.translate(
-                          offset: Offset(0, 55),
-                          child: Container(
-                            height: 66.h,
+                          SizedBox(
+                            height: 30.h,
+                          ),
+                          // EXPLORACIÓN
+                          Container(
+                            height: 100.h,
                             decoration: BoxDecoration(
-                                //color: const Color.fromRGBO(1, 37, 255, 1),
-                                borderRadius: BorderRadius.circular(25.r)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              //crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 87.w,
-                                  height: 87.w,
-                                  decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              'lib/assets/imagenes/logo.png'))),
-                                ),
-                                SizedBox(
-                                  width: 20.w,
-                                ),
-                                Text(
-                                  "! Llevando vida a tu hogar !",
-                                  style: GoogleFonts.manrope(
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromRGBO(1, 37, 255, 1)),
-                                )
-                              ],
+                                color: Color.fromRGBO(1, 37, 255, 1),
+                                borderRadius: BorderRadius.circular(15.r)),
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 16.r, right: 16.r),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.verified,
+                                        size: 30.sp,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(
+                                        width: 10.w,
+                                      ),
+                                      Text(
+                                        "Explora más productos",
+                                        style: GoogleFonts.manrope(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 14.sp),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    width: 70.w,
+                                    height: 36.h,
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(20.r)),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          context.push('/allcategoria_sub');
+                                        },
+                                        child: Text(
+                                          "Ver",
+                                          style: GoogleFonts.manrope(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12.5.sp,
+                                              color: Color.fromRGBO(
+                                                  1, 37, 255, 1)),
+                                        )),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                          SizedBox(
+                            height: 7.h,
+                          ),
+
+                          Transform.translate(
+                            offset: Offset(0, 55),
+                            child: Container(
+                              height: 66.h,
+                              decoration: BoxDecoration(
+                                  //color: const Color.fromRGBO(1, 37, 255, 1),
+                                  borderRadius: BorderRadius.circular(25.r)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                //crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 87.w,
+                                    height: 87.w,
+                                    decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                'lib/assets/imagenes/logo.png'))),
+                                  ),
+                                  SizedBox(
+                                    width: 20.w,
+                                  ),
+                                  Text(
+                                    "! Llevando vida a tu hogar !",
+                                    style: GoogleFonts.manrope(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromRGBO(1, 37, 255, 1)),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          SizedBox(
+                            height: 50.h,
+                          ),
+                          Center(
+                            child: Container(
+                              height: 50.h,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(color: Colors.grey)),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Productos no disponibles en tu ubicacioón",
+                                    style: GoogleFonts.manrope(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.grey,
+                                      ),
+                                      Text(
+                                        "Selecciona otra ubicación",
+                                        style: GoogleFonts.manrope(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          )
+                        ]
                       ],
                     ),
                   ),
@@ -664,7 +951,7 @@ class _Inicio2State extends State<Inicio2> {
                   width: 230.w,
                   height: 50.h,
                   decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 162, 250, 61),
+                      color: Color.fromARGB(255, 255, 238, 48),
                       boxShadow: [
                         BoxShadow(color: Colors.black26, blurRadius: 6),
                       ],

@@ -1,6 +1,10 @@
+import 'package:app2025v2/models/ubicacion_model.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class Location extends StatefulWidget {
   const Location({Key? key}) : super(key: key);
@@ -10,9 +14,25 @@ class Location extends StatefulWidget {
 }
 
 class _LocationState extends State<Location> {
-  final TextEditingController _username = TextEditingController();
+  TextEditingController _direccion = TextEditingController();
+  TextEditingController _manzana = TextEditingController();
+  TextEditingController _etiqueta = TextEditingController();
+
   String? _selectedDepartamento; // Agrega esto a tu clase
   String? _selectedDistrito; // Agrega esto a tu clase
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final ubicacion =
+        Provider.of<UbicacionProvider>(context, listen: false).getUbicaiontemp;
+    _direccion = TextEditingController(text: ubicacion?.direccion);
+    _etiqueta = TextEditingController(text: ubicacion?.etiqueta);
+    _manzana = TextEditingController(text: ubicacion?.numero_manzana);
+    _selectedDepartamento = ubicacion?.departamento;
+    _selectedDistrito = ubicacion?.distrito;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,40 +84,52 @@ class _LocationState extends State<Location> {
                 height: 33.h,
               ),
               Form(
+                  key: _formKey,
                   child: Column(
-                children: [
-                  DropdownButtonFormField<String>(
-                    value: _selectedDepartamento,
-                    items: ['Arequipa', 'Moquegua', 'Lima']
-                        .map((departamento) => DropdownMenuItem(
-                              value: departamento,
-                              child: Text(departamento),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedDepartamento = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.location_searching),
-                      labelText: "Departamento",
-                      hintText: "Selecciona un departamento",
-                      labelStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 41.h,
-                  ),
-                  /*TextFormField(
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: _selectedDepartamento,
+                        items: [
+                          'Arequipa',
+                          'Moquegua',
+                          'Lima'
+                        ] // ENDPOINT SOLO PARA DEPARTAMENTOS
+                            .map((departamento) => DropdownMenuItem(
+                                  value: departamento,
+                                  child: Text(departamento),
+                                ))
+                            .toList(),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor selecciona un departamento';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDepartamento = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.location_searching),
+                          labelText: "Departamento",
+                          hintText: "Selecciona un departamento",
+                          hintStyle: GoogleFonts.manrope(fontSize: 13.sp),
+                          labelStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                          filled: true,
+                          fillColor: Color.fromRGBO(246, 246, 246, 1),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 41.h,
+                      ),
+                      /*TextFormField(
                     controller: _username,
                     decoration: InputDecoration(
                       /*contentPadding: EdgeInsets.symmetric(
@@ -121,128 +153,176 @@ class _LocationState extends State<Location> {
                   SizedBox(
                     height: 41.h,
                   ),*/
-                  DropdownButtonFormField<String>(
-                    value: _selectedDistrito,
-                    items: ['Sachaca', 'M.Melgar']
-                        .map((departamento) => DropdownMenuItem(
-                              value: departamento,
-                              child: Text(departamento),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedDistrito = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.location_city),
-                      labelText: "Distrito",
-                      hintText: "Selecciona un distrito",
-                      hintStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      labelStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                      filled: true,
-                      fillColor: Color.fromRGBO(246, 246, 246, 1),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 41.h,
-                  ),
-                  TextFormField(
-                    controller: _username,
-                    decoration: InputDecoration(
-                      /*contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 20.sp, ver  ical: 16.sp),*/
-                      prefixIcon: Icon(
-                        Icons.map_outlined,
+                      DropdownButtonFormField<String>(
+                        value: _selectedDistrito,
+                        items: ['Sachaca', 'Mariano Melgar']
+                            .map((departamento) => DropdownMenuItem(
+                                  value: departamento,
+                                  child: Text(departamento),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDistrito = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor selecciona un distrito';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.location_city),
+                          labelText: "Distrito",
+                          hintText: "Selecciona un distrito",
+                          hintStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                          labelStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                          filled: true,
+                          fillColor: Color.fromRGBO(246, 246, 246, 1),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
                       ),
-                      labelText: "Dirección",
-                      hintText: "Ej. Av. Sol",
-                      hintStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      labelStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                      filled: true,
-                      fillColor:
-                          Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 41.h,
-                  ),
-                  TextFormField(
-                    controller: _username,
-                    decoration: InputDecoration(
-                      /*contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 20.sp, ver  ical: 16.sp),*/
-                      prefixIcon: Icon(
-                        Icons.maps_home_work_outlined,
+                      SizedBox(
+                        height: 41.h,
                       ),
-                      labelText: "Número/Mz./Lote",
-                      hintText: "Ej. 200/F/2",
-                      hintStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      labelStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                      filled: true,
-                      fillColor:
-                          Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 41.h,
-                  ),
-                  TextFormField(
-                    controller: _username,
-                    decoration: InputDecoration(
-                      /*contentPadding: EdgeInsets.symmetric(
+                      TextFormField(
+                        controller: _direccion,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Por favor ingresa tu dirección';
+                          }
+                          if (value.trim().length < 5) {
+                            return 'Dirección demasiado corta';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          /*contentPadding: EdgeInsets.symmetric(
                                     horizontal: 20.sp, ver  ical: 16.sp),*/
-                      prefixIcon: Icon(
-                        Icons.label_outline,
+                          prefixIcon: Icon(
+                            Icons.map_outlined,
+                          ),
+                          labelText: "Dirección",
+                          hintText: "Ej. Av. Sol",
+                          hintStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                          labelStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                          filled: true,
+                          fillColor:
+                              Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
                       ),
-
-                      labelText: "Etiqueta tu dirección",
-                      hintText: "Ej. Casa / Oficina / Novia",
-                      hintStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      labelStyle: GoogleFonts.manrope(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                      filled: true,
-                      fillColor:
-                          Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                ],
-              )),
+                      SizedBox(
+                        height: 41.h,
+                      ),
+                      TextFormField(
+                        controller: _manzana,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Por favor ingresa número, Mz. o lote';
+                          }
+                          if (!RegExp(r'^[a-zA-Z0-9\s\-\/]+$')
+                              .hasMatch(value.trim())) {
+                            return 'Solo se permiten letras, números, espacios, guiones y /';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          /*contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 20.sp, ver  ical: 16.sp),*/
+                          prefixIcon: Icon(
+                            Icons.maps_home_work_outlined,
+                          ),
+                          labelText: "Número/Mz./Lote",
+                          hintText: "Ej. 200/F/2",
+                          hintStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                          labelStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                          filled: true,
+                          fillColor:
+                              Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 41.h,
+                      ),
+                      TextFormField(
+                        controller: _etiqueta,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          /*contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 20.sp, ver  ical: 16.sp),*/
+                          prefixIcon: Icon(
+                            Icons.label_outline,
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red, width: 2),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red, width: 2),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.blue),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          labelText: "Etiqueta tu dirección",
+                          hintText: "Ej. Casa / Oficina / Novia",
+                          hintStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                          helperText:
+                              "Elige un nombre corto para etiquetar tu dirección",
+                          labelStyle: GoogleFonts.manrope(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                          filled: true,
+                          fillColor:
+                              Color.fromRGBO(246, 246, 246, 1), // Fondo blanco
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
+                      ),
+                    ],
+                  )),
               SizedBox(
                 height: 45.h,
               ),
@@ -250,7 +330,33 @@ class _LocationState extends State<Location> {
                 width: 350.w,
                 height: 50.h,
                 child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        // Aquí todo está válido
+                        // Tu lógica...
+                        final ubicacionExistente =
+                            Provider.of<UbicacionProvider>(context,
+                                    listen: false)
+                                .getUbicaiontemp;
+
+                        Provider.of<UbicacionProvider>(context, listen: false)
+                            .setTemporal(UbicacionModel(
+                          id: ubicacionExistente
+                              ?.id, // ← Aquí lo conservas si existe
+                          departamento: _selectedDepartamento,
+                          distrito: _selectedDistrito,
+                          direccion: _direccion.text,
+                          numero_manzana: _manzana.text,
+                          etiqueta: _etiqueta.text,
+                        ));
+                        print("ID enviado a mapa: ${ubicacionExistente?.id}");
+
+                        context.push('/mapa');
+                        print("Formulario válido, puedes continuar");
+                      } else {
+                        print("Formulario inválido");
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                         shadowColor: const Color.fromARGB(255, 116, 116, 116),
                         backgroundColor: Color.fromRGBO(1, 37, 255, 1),

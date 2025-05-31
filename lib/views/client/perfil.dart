@@ -1,7 +1,12 @@
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Perfil extends StatefulWidget {
   const Perfil({Key? key}) : super(key: key);
@@ -25,6 +30,7 @@ class _PerfilState extends State<Perfil> {
 
   @override
   Widget build(BuildContext context) {
+    final clienteProvider = context.watch<ClienteProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -53,8 +59,9 @@ class _PerfilState extends State<Perfil> {
                       height: 100.h,
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                              image:
-                                  AssetImage('lib/assets/imagenes/avion.png')),
+                              image: NetworkImage(clienteProvider
+                                      .clienteActual?.cliente?.fotoCliente ??
+                                  'https://solvida.sfo3.cdn.digitaloceanspaces.com/7fc4c6ecc7738247aac61a60958429d4-removebg-preview.png')),
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(50.r)),
                     ),
@@ -66,12 +73,18 @@ class _PerfilState extends State<Perfil> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Jorge Perez A.",
+                          "${clienteProvider.clienteActual?.cliente.nombres}",
                           style: GoogleFonts.manrope(
                               fontWeight: FontWeight.bold, fontSize: 24.sp),
                         ),
                         Text(
-                          "jorge@gmail.com",
+                          "${clienteProvider.clienteActual?.user.email}",
+                          style: GoogleFonts.manrope(
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                        Text(
+                          "${clienteProvider.clienteActual?.user.telefono}",
                           style: GoogleFonts.manrope(
                             fontSize: 14.sp,
                           ),
@@ -84,86 +97,7 @@ class _PerfilState extends State<Perfil> {
               SizedBox(
                 height: 36.h,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Código de referido",
-                    style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.bold, fontSize: 14.sp),
-                  ),
-                  IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.info_outline,
-                        color: Color.fromRGBO(1, 37, 255, 1),
-                      ))
-                ],
-              ),
-              SizedBox(
-                height: 5.h,
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                      onPressed: () {}, icon: Icon(Icons.share_outlined)),
-                  Text(
-                    "SXASDT",
-                    style: GoogleFonts.manrope(
-                      fontSize: 14.sp,
-                    ),
-                  )
-                ],
-              ),
-              Container(
-                child: Divider(
-                  color: Colors.grey,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Billetera digital",
-                    style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.bold, fontSize: 14.sp),
-                  ),
-                  IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.info_outline,
-                        color: Color.fromRGBO(1, 37, 255, 1),
-                      ))
-                ],
-              ),
-              Column(
-                children: [
-                  Text(
-                    "S/.100.3",
-                    style: GoogleFonts.manrope(
-                        fontWeight: FontWeight.bold, fontSize: 30.sp),
-                  ),
-                  Container(
-                    width: 1.sw,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          print("retirar");
-                        },
-                        style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15.r)),
-                            backgroundColor: Color.fromRGBO(1, 37, 255, 1)),
-                        child: Text(
-                          "Retirar monto",
-                          style: GoogleFonts.manrope(
-                              fontSize: 14.sp,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        )),
-                  )
-                ],
-              ),
+
               Container(
                 child: Divider(
                   color: Colors.grey,
@@ -249,7 +183,29 @@ class _PerfilState extends State<Perfil> {
                             backgroundColor: Color.fromRGBO(1, 37, 255, 1),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15.r))),
-                        onPressed: () {
+                        onPressed: () async {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          );
+                          await FirebaseAuth.instance.signOut();
+
+                          Navigator.of(context).pop();
+
+                          final prefs = await SharedPreferences.getInstance();
+
+                          // Limpia el número de teléfono u otros datos personalizados
+                          //await prefs.remove('telefono');
+                          clienteProvider.limpiarCliente();
+                          Provider.of<UbicacionProvider>(context, listen: false)
+                              .limpiarUbicaciones();
                           context.go('/');
                         },
                         child: Text(
