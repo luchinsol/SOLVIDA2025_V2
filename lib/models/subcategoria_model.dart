@@ -3,8 +3,8 @@ import 'package:app2025v2/models/promocion_model.dart';
 
 class SubcategoriaModel {
   int? id;
-  String nombre;
-  String icono;
+  String? nombre;
+  String? icono;
   String fecha_inicio;
   String fecha_fin;
   List<ProductoModel> productos;

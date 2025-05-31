@@ -601,7 +601,8 @@ class _Inicio2State extends State<Inicio2> {
                                     children: [
                                       Text(
                                         categoriaInicio!
-                                            .subcategorias[i].nombre, // nombre
+                                                .subcategorias[i].nombre ??
+                                            'no nombre', // nombre
                                         style: GoogleFonts.manrope(
                                           fontSize: 16.sp,
                                         ),
@@ -616,8 +617,9 @@ class _Inicio2State extends State<Inicio2> {
                                             image: DecorationImage(
                                                 image: NetworkImage(
                                                     categoriaInicio!
-                                                        .subcategorias[i]
-                                                        .icono))),
+                                                            .subcategorias[i]
+                                                            .icono ??
+                                                        '-'))),
                                       )
                                     ],
                                   ),

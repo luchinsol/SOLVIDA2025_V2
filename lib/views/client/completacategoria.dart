@@ -98,7 +98,8 @@ class _CompletacategoriaState extends State<Completacategoria> {
                             decoration: BoxDecoration(
                                 image: DecorationImage(
                                     image: NetworkImage(categoriaInicio!
-                                        .subcategorias[i].icono))),
+                                            .subcategorias[i].icono ??
+                                        '-'))),
                           )
                         ],
                       ),
