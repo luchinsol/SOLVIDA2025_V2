@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -8,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -49,140 +51,131 @@ class _RegisterState extends State<Register> {
         password: pass,
       );
 
-      var res = await http.post(Uri.parse(apiGw + "/register_micro_cliente"),
-          body: json.encode({
-            "user": {
-              "rol_id": 4,
-              "email": email,
-              "telefono": telefono,
-              "firebase_uid": userCred.user!.uid
-            },
-            "cliente": {
-              "nombres": nombres,
-              "apellidos": apellidos,
-              "foto_cliente": "na"
-            }
-          }),
-          headers: {"Content-type": "application/json"});
-      if (res.statusCode == 201) {
-        // var data = json.decode(res.body);
+      await Provider.of<ClienteProvider>(context, listen: false)
+          .postClienteData(
+              email: email,
+              telefono: telefono,
+              nombres: nombres,
+              apellidos: apellidos,
+              foto: userCred.user?.photoURL,
+              firebase_uid: userCred.user?.uid);
 
-        if (mounted) Navigator.of(context).pop();
-        print("Registro manual exitoso");
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return Dialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)),
-              child: Container(
-                height: 1.sh / 2.3,
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        height: 120.w,
-                        width: 120.w,
-                        decoration: BoxDecoration(
-                            //color: Colors.amber,
-                            image: DecorationImage(
-                                fit: BoxFit.contain,
-                                image: AssetImage(
-                                    'lib/assets/imagenes/felicitaciones.png'))),
-                      ),
-                      /* Icon(
+      if (mounted) Navigator.of(context).pop();
+      print("Registro manual exitoso");
+      await Future.delayed(const Duration(milliseconds: 200));
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            child: Container(
+              height: 1.sh / 2.3,
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 120.w,
+                      width: 120.w,
+                      decoration: BoxDecoration(
+                          //color: Colors.amber,
+                          image: DecorationImage(
+                              fit: BoxFit.contain,
+                              image: AssetImage(
+                                  'lib/assets/imagenes/felicitaciones.png'))),
+                    ),
+                    /* Icon(
                         Icons.check_circle_outline,
                         size: 60.sp,
                         color: Colors.lightGreen,
                       ),*/
-                      SizedBox(height: 20),
-                      Text(
-                        "¡Felicitaciones!",
-                        textAlign: TextAlign.center,
+                    SizedBox(height: 20),
+                    Text(
+                      "¡Felicitaciones!",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        color: Color.fromRGBO(1, 37, 255, 1),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20.sp,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      "Registro completado satisfactoriamente",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w300,
+                        fontSize: 20.sp,
+                      ),
+                    ),
+                    SizedBox(height: 30.h),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: BorderSide(color: Color.fromRGBO(1, 37, 255, 1)),
+                      ),
+                      child: Text(
+                        "Continuar",
                         style: GoogleFonts.manrope(
-                          color: Color.fromRGBO(1, 37, 255, 1),
                           fontWeight: FontWeight.w500,
-                          fontSize: 20.sp,
+                          color: Color.fromRGBO(1, 37, 255, 1),
                         ),
                       ),
-                      SizedBox(height: 20.h),
-                      Text(
-                        "Registro completado satisfactoriamente",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.w300,
-                          fontSize: 20.sp,
-                        ),
-                      ),
-                      SizedBox(height: 30.h),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          side:
-                              BorderSide(color: Color.fromRGBO(1, 37, 255, 1)),
-                        ),
-                        child: Text(
-                          "Continuar",
-                          style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromRGBO(1, 37, 255, 1),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        );
-      } else {}
+            ),
+          );
+        },
+      );
     } catch (e) {
       print("Error de registro: $e");
       if (mounted) Navigator.of(context).pop();
-
+      await Future.delayed(const Duration(milliseconds: 200));
       String errorMessage = "Error al registrar la cuenta";
       if (e is FirebaseAuthException) {
         errorMessage = e.message ?? errorMessage;
       }
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            title: Text(
-              "Algo falló!",
-              style: GoogleFonts.manrope(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              "Este e-mail ya está en uso por otra cuenta. Intente de nuevo.",
-              style: GoogleFonts.manrope(fontWeight: FontWeight.w500),
-            ),
-            actions: [
-              TextButton(
-                child: Text(
-                  "Cerrar",
-                  style: GoogleFonts.manrope(
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromRGBO(1, 37, 255, 1)),
+      if (mounted)
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              title: Text(
+                "Algo falló!",
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.bold,
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Cierra el diálogo
-                },
               ),
-            ],
-          );
-        },
-      );
+              content: Text(
+                "Este e-mail ya está en uso por otra cuenta. Intente de nuevo por favor.",
+                textAlign: TextAlign.justify,
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w500),
+              ),
+              actions: [
+                TextButton(
+                  child: Text(
+                    "Cerrar",
+                    style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w500,
+                        color: Color.fromRGBO(1, 37, 255, 1)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cierra el diálogo
+                  },
+                ),
+              ],
+            );
+          },
+        );
 
       /*ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
@@ -231,12 +224,36 @@ class _RegisterState extends State<Register> {
       print(user.user?.displayName);
       /* SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('fotito', user.user!.photoURL!);*/
+      var res = await http.post(Uri.parse(apiGw + "/register_cliente"),
+          body: json.encode({
+            "user": {
+              "rol_id": 4,
+              "email": user.user?.email ?? '-',
+              "telefono": user.user?.phoneNumber ?? '-',
+              "firebase_uid": user.user?.uid
+            },
+            "cliente": {
+              "nombres": user.additionalUserInfo?.profile?['given_name'] ?? '-',
+              "apellidos":
+                  user.additionalUserInfo?.profile?['family_name'] ?? '-',
+              "foto_cliente": user.user?.photoURL ??
+                  "https://solvida.sfo3.cdn.digitaloceanspaces.com/7fc4c6ecc7738247aac61a60958429d4-removebg-preview.png"
+            }
+          }),
+          headers: {"Content-type": "application/json"});
+      if (res.statusCode == 201) {
+        // var data = json.decode(res.body);
 
+        if (mounted) Navigator.of(context).pop();
+        print("Registro manual exitoso");
+      }
       context.go('/');
 
       // Navegar a la página principal después del login exitoso
     } catch (e) {
       print("Error en Google SignIn: $e");
+      if (!mounted) return;
+      Navigator.pop(context);
       // Mostrar error al usuario
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al iniciar sesión con Google")),
@@ -487,13 +504,15 @@ class _RegisterState extends State<Register> {
                 height: 50.h,
                 child: ElevatedButton(
                     onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _registermanual(
+                            _controllernombres.text,
+                            _controllerapellidos.text,
+                            _controllertelefono.text,
+                            _controlleremail.text,
+                            _controllerpass.text);
+                      }
                       // LLAMAMOS A LA FUNCIÓN
-                      _registermanual(
-                          _controllernombres.text,
-                          _controllerapellidos.text,
-                          _controllertelefono.text,
-                          _controlleremail.text,
-                          _controllerpass.text);
 
                       // LIMPIAR FORMULARIO
                       /*_formKey.currentState!.reset();

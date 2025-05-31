@@ -1,5 +1,5 @@
 import 'package:app2025v2/views/client/cupones.dart';
-import 'package:app2025v2/views/client/inicio.dart';
+
 import 'package:app2025v2/views/client/inicio2.dart';
 import 'package:app2025v2/views/client/notificaciones.dart';
 import 'package:app2025v2/views/client/ordenes.dart';

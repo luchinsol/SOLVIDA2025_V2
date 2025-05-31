@@ -2,7 +2,7 @@ import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
 
 class SubcategoriaModel {
-  int id;
+  int? id;
   String nombre;
   String icono;
   String fecha_inicio;

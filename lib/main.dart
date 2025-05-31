@@ -2,21 +2,25 @@ import 'package:app2025v2/class_config/clase_notificacion.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
-import 'package:app2025v2/providers/generico_provider.dart';
+import 'package:app2025v2/providers/iniciarapp_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:app2025v2/views/barra/barra.dart';
 import 'package:app2025v2/views/client/carrito.dart';
 import 'package:app2025v2/views/client/circular.dart';
+import 'package:app2025v2/views/client/completacategoria.dart';
 import 'package:app2025v2/views/client/detalle_producto.dart';
 import 'package:app2025v2/views/client/editarperfil.dart';
 import 'package:app2025v2/views/client/finpedido.dart';
-import 'package:app2025v2/views/client/inicio.dart';
 import 'package:app2025v2/views/client/inicio2.dart';
 import 'package:app2025v2/views/client/libroreclamacion.dart';
 import 'package:app2025v2/views/client/seccion_sub.dart';
 import 'package:app2025v2/views/client/soporte.dart';
+import 'package:app2025v2/views/client/todocategoria.dart';
 import 'package:app2025v2/views/sesion_register/otp.dart';
 import 'package:app2025v2/views/sesion_register/register.dart';
 import 'package:app2025v2/views/ubicacion/lista.dart';
@@ -30,6 +34,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,16 +45,21 @@ Future<void> main() async {
   await notificationsService
       .requestNotificationPermission(); // Solicita permisos
   await notificationsService.initNotification(); // Configura las notificaciones
+  // final usuarioPrefs = await SharedPreferences.getInstance();
 
   runApp(MultiProvider(
     providers: [
+      ChangeNotifierProvider(create: (context) => ClienteProvider()),
+      /* ChangeNotifierProvider(
+          create: (context) => IniciarappProvider(usuarioPrefs)),*/
       ChangeNotifierProvider(create: (context) => EventoProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaInicioProvider()),
-      ChangeNotifierProvider(create: (context) => GenericoProvider()),
       ChangeNotifierProvider(create: (context) => CarritoProvider()),
       ChangeNotifierProvider(create: (context) => SubcategoriaProvider()),
       ChangeNotifierProvider(create: (context) => TemperaturaProvider()),
+      ChangeNotifierProvider(create: (context) => DetalleProductoProvider()),
+      ChangeNotifierProvider(create: (context) => UbicacionProvider()),
     ],
     child: const MyApp(),
   ));
@@ -77,9 +87,33 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/mapa',
+      builder: (BuildContext context, GoRouterState state) {
+        return const Mapa();
+      },
+    ),
+    GoRoute(
+      path: '/location',
+      builder: (BuildContext context, GoRouterState state) {
+        return const Location();
+      },
+    ),
+    GoRoute(
       path: '/subcategoria',
       builder: (BuildContext context, GoRouterState state) {
         return const SubCategoria();
+      },
+    ),
+    GoRoute(
+      path: '/todocategoria',
+      builder: (BuildContext context, GoRouterState state) {
+        return const TodoCategoria();
+      },
+    ),
+    GoRoute(
+      path: '/allcategoria_sub',
+      builder: (BuildContext context, GoRouterState state) {
+        return const Completacategoria();
       },
     ),
     GoRoute(

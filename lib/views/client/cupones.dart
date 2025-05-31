@@ -1,9 +1,13 @@
+import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/views/sol.dart';
 import 'package:flutter/material.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:provider/provider.dart';
 
 class Cupones extends StatefulWidget {
   const Cupones({Key? key}) : super(key: key);
@@ -42,32 +46,75 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final carritoProvider = context.watch<CarritoProvider>();
     return Scaffold(
       //backgroundColor: Color.fromRGBO(1, 37, 255, 1),
       backgroundColor: Colors.white,
       appBar: AppBar(
-        //backgroundColor: Color.fromRGBO(1, 37, 255, 1),
-        backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-        title: Text(
-          "Cupones",
-          style: GoogleFonts.manrope(fontSize: 15.sp, color: Colors.black),
+        backgroundColor: Color.fromRGBO(1, 37, 255, 1),
+        //backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Cupones",
+              style: GoogleFonts.manrope(fontSize: 15.sp, color: Colors.white
+                  //color: Colors.black
+                  ),
+            ),
+            badges.Badge(
+                position: badges.BadgePosition.topEnd(top: -1, end: -1),
+                badgeContent: Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Text(
+                    '${Provider.of<CarritoProvider>(context, listen: false).totalItems}',
+                    style: GoogleFonts.manrope(
+                        color: Color.fromRGBO(1, 37, 255, 1),
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                showBadge: Provider.of<CarritoProvider>(context, listen: true)
+                            .totalItems >
+                        0
+                    ? true
+                    : false,
+                badgeStyle: badges.BadgeStyle(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                        color: Color.fromRGBO(1, 37, 255, 1), width: 2),
+                    badgeColor: const Color.fromARGB(255, 255, 255, 255)),
+                child: IconButton(
+                  onPressed: () {
+                    context.push('/carrito');
+                    print("Carrita");
+                  },
+                  icon: Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 25.sp,
+                    color: Color.fromRGBO(255, 255, 255, 1),
+                  ),
+                ))
+          ],
         ),
       ),
       body: Column(
         //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /*RotationTransition(
+                          turns: _controller,
+                          child: WavySun(size: Size(100, 100)))*/
           Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
-                height: 120,
+                height: 110,
                 width: 1.sw,
                 decoration: BoxDecoration(
                     /*image: DecorationImage(
                     fit: BoxFit.fill,
                     image: AssetImage('lib/assets/imagenes/fiesta.jpg'),
                   ),*/
-                    color: Color.fromRGBO(33, 55, 255, 1)),
+                    color: Color.fromRGBO(1, 37, 255, 1)),
                 child: Padding(
                   padding: EdgeInsets.only(left: 16.r, right: 16.r),
                   child: Column(
@@ -96,16 +143,13 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                           begin: Offset(0.7, 0.7),
                           end: Offset(1.0, 1.0)),
                       Text(
-                        "%off",
+                        "% descuentos",
                         style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            fontSize: 55.sp,
-                            letterSpacing: 25),
-                      ),
-                      RotationTransition(
-                          turns: _controller,
-                          child: WavySun(size: Size(100, 100)))
+                            fontSize: 20.sp,
+                            letterSpacing: 10),
+                      ).animate().flip(),
 
                       /* Container(
                         height: 65.h,
@@ -136,9 +180,11 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                   ),
                 ),
               ),
+
+              // IMAGEN DEL BIDÓN SOPREPUESTA
               Positioned(
-                  top: 10,
-                  left: 10,
+                  top: -3,
+                  left: -15,
                   /* child: RotationTransition(
                     turns: _controller,*/
                   child: Container(
@@ -147,21 +193,21 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                     decoration: BoxDecoration(
                         // color: Colors.amber,
                         image: DecorationImage(
-                            fit: BoxFit.fill,
+                            //fit: BoxFit.fitHeight,
                             image:
-                                AssetImage('lib/assets/imagenes/money.png'))),
+                                AssetImage('lib/assets/imagenes/bidon.png'))),
                     //),
-                  ))
+                  ).animate().shake())
             ],
           ),
           SizedBox(
-            height: 60.h,
+            height: 50.h,
           ),
           Padding(
             padding: EdgeInsets.only(left: 16.r, right: 16.r),
             child: Column(
               children: [
-// FILTROS DE SELECCIÓN CATEGORÍAS
+                // FILTROS DE SELECCIÓN CATEGORÍAS
                 Container(
                   height: 40.h,
                   child: ListView(scrollDirection: Axis.horizontal, children: [
@@ -345,7 +391,130 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                         height: 26.h,
                                         child: ElevatedButton(
                                             onPressed: () {
-                                              print("usar ahora");
+                                              if (carritoProvider.totalItems >
+                                                  0) {
+                                                print("...usamos cupon");
+                                              } else {
+                                                showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return Dialog(
+                                                      backgroundColor:
+                                                          Colors.white,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          15)),
+                                                      child: Container(
+                                                        height: 1.sh / 2.3,
+                                                        child: Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  20),
+                                                          child: Column(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Container(
+                                                                height: 120.w,
+                                                                width: 120.w,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                        //color: Colors.amber,
+                                                                        image: DecorationImage(
+                                                                            image:
+                                                                                AssetImage('lib/assets/imagenes/carritovacio.png'))),
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 20),
+                                                              Text(
+                                                                "Tu carrito esta vacío",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .manrope(
+                                                                  color: Color
+                                                                      .fromRGBO(
+                                                                          1,
+                                                                          37,
+                                                                          255,
+                                                                          1),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  fontSize:
+                                                                      20.sp,
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 20.h),
+                                                              Text(
+                                                                "Agrega productos relacionados a los cupones",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .manrope(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w300,
+                                                                  fontSize:
+                                                                      20.sp,
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 30.h),
+                                                              ElevatedButton(
+                                                                style: ElevatedButton
+                                                                    .styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white,
+                                                                  side: BorderSide(
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              1,
+                                                                              37,
+                                                                              255,
+                                                                              1)),
+                                                                ),
+                                                                child: Text(
+                                                                  "Continuar",
+                                                                  style: GoogleFonts
+                                                                      .manrope(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500,
+                                                                    color: Color
+                                                                        .fromRGBO(
+                                                                            1,
+                                                                            37,
+                                                                            255,
+                                                                            1),
+                                                                  ),
+                                                                ),
+                                                                onPressed: () {
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                              //print("usar ahora");
                                             },
                                             style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.white),

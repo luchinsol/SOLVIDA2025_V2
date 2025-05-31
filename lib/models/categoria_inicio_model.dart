@@ -2,7 +2,7 @@ import 'package:app2025v2/models/subcategoria_model.dart';
 
 class CategoriaSubcategoriaModel {
   int? id;
-  String nombre;
+  String? nombre;
   int zona_trabajo;
   List<SubcategoriaModel> subcategorias;
 

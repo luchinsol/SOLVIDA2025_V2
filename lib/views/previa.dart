@@ -1,7 +1,11 @@
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/iniciarapp_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Previa extends StatefulWidget {
@@ -20,6 +24,21 @@ class _PreviaState extends State<Previa> {
   void initState() {
     super.initState();
     _startAutoScroll();
+    final clienteProvider =
+        Provider.of<ClienteProvider>(context, listen: false);
+/*
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final clienteId = clienteProvider.clienteActual?.cliente?.id;
+
+      if (clienteId != null) {
+        Provider.of<UbicacionProvider>(context, listen: false)
+            .getUbicaciones(clienteId);
+      } else {
+        print('⚠️ clienteId es null. No se pudo cargar ubicaciones.');
+      }
+    });*/
   }
 
   void _startAutoScroll() async {
@@ -90,8 +109,12 @@ class _PreviaState extends State<Previa> {
                 width: 350.w,
                 height: 50.h,
                 child: ElevatedButton(
-                    onPressed: () {
-                      context.go('/barracliente');
+                    onPressed: () async {
+                      /* final ruta = await context
+                          .read<IniciarappProvider>()
+                          .determinarRutaInicial(context);*/
+                      context.go('/location');
+                      // context.go('/barracliente');
                     },
                     style: ElevatedButton.styleFrom(
                         shadowColor: const Color.fromARGB(255, 116, 116, 116),

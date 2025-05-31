@@ -1,13 +1,14 @@
 import 'package:app2025v2/models/estilo_model.dart';
 
 class ProductoModel {
-  int id;
+  int? id;
   String nombre;
   List<String> fotos;
   int? valoracion;
   int? precio;
   int? descuento;
   EstiloModel estilo;
+  int cantidad = 1;
   //CONSTRUCTOR
   ProductoModel(
       {required this.id,

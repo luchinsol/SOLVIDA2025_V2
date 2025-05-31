@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:app2025v2/models/banner_model.dart';
 import 'package:app2025v2/models/evento_model.dart';
+import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:app2025v2/views/client/components/curvas_effects/curva_superior/clipper1.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,17 +23,29 @@ class Curva1 extends StatelessWidget {
 
   Widget build(BuildContext context) {
     final carritoProvider = context.watch<CarritoProvider>();
+    final ubicacionProvider = context.watch<UbicacionProvider>();
+
+    UbicacionModel? direccionSeleccionada;
+
+    if (ubicacionProvider.allubicaciones.isNotEmpty) {
+      direccionSeleccionada = ubicacionProvider.allubicaciones.firstWhere(
+        (u) => u.id == ubicacionProvider.idSeleccionado,
+        orElse: () => ubicacionProvider.allubicaciones.first,
+      );
+    } else {
+      direccionSeleccionada = null;
+    }
+
     return ClipPath(
       clipper: MyCustomClipper(),
       child: Container(
         width: 524.w,
         height: 480.h,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 54, 67, 253),
-          /* image: DecorationImage(
+            color: const Color.fromARGB(255, 54, 67, 253),
+            image: DecorationImage(
                 fit: BoxFit.fill,
-                image: AssetImage('lib/assets/imagenes/${fondo}'))*/
-        ),
+                image: AssetImage('lib/assets/imagenes/${fondo}'))),
 
         // STACKEANDO EL FONDO
         child: Stack(
@@ -113,7 +127,7 @@ class Curva1 extends StatelessWidget {
               ),
             ),
 
-            // PUNTO DE ENTREGA ES FIJO AHORA
+            // PUNTO DE ENTREGA ES FLOTANTE AHORA
             Positioned(
               top: 105.h,
               left: 12.w,
@@ -137,7 +151,8 @@ class Curva1 extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12.sp)),
                           TextSpan(
-                              text: 'CASA',
+                              text:
+                                  direccionSeleccionada?.etiqueta ?? 'ninguno',
                               style: GoogleFonts.manrope(
                                   color: Colors.white,
                                   fontSize: 12.sp,
@@ -164,7 +179,9 @@ class Curva1 extends StatelessWidget {
                             Container(
                               width: 215.w,
                               child: Text(
-                                "Calle las rosas - Sachaca - Pampa de Camarones",
+                                direccionSeleccionada != null
+                                    ? "${direccionSeleccionada!.direccion} ${direccionSeleccionada!.distrito}"
+                                    : "No se ha seleccionado una dirección",
                                 style: GoogleFonts.manrope(
                                     color: Colors.black,
                                     fontSize: 11.sp,

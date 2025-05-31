@@ -1,5 +1,6 @@
-import 'package:app2025v2/models/generico_model.dart';
-import 'package:app2025v2/providers/generico_provider.dart';
+import 'package:app2025v2/models/promocion_model.dart';
+import 'package:app2025v2/providers/carrito_provider.dart';
+import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:app2025v2/views/client/components/opiniones.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
 
   @override
   Widget build(BuildContext context) {
-    final productogenerico = context.watch<GenericoProvider>();
+    final productogenerico = context.watch<DetalleProductoProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -45,7 +46,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${productogenerico.allGenericos?.nombre_sub}',
+              'Detalle del producto',
               style: GoogleFonts.manrope(fontSize: 16.sp),
             ),
             badges.Badge(
@@ -53,13 +54,17 @@ class _DetalleProductoState extends State<DetalleProducto> {
                 badgeContent: Padding(
                   padding: const EdgeInsets.all(3.0),
                   child: Text(
-                    '3',
+                    '${Provider.of<CarritoProvider>(context, listen: false).totalItems}',
                     style: GoogleFonts.manrope(
                         color: Color.fromRGBO(1, 37, 255, 1),
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-                showBadge: true,
+                showBadge: Provider.of<CarritoProvider>(context, listen: true)
+                            .totalItems >
+                        0
+                    ? true
+                    : false,
                 badgeStyle: badges.BadgeStyle(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
@@ -67,6 +72,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     badgeColor: const Color.fromARGB(255, 255, 255, 255)),
                 child: IconButton(
                   onPressed: () {
+                    context.push('/carrito');
                     print("Carrita");
                   },
                   icon: Icon(
@@ -86,11 +92,13 @@ class _DetalleProductoState extends State<DetalleProducto> {
             children: [
               Text.rich(TextSpan(children: [
                 TextSpan(
-                    text: "Promoción\n",
+                    text: productogenerico.item is PromocionModel
+                        ? "Promoción\n"
+                        : null,
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w200, fontSize: 50.sp)),
                 TextSpan(
-                    text: "${productogenerico.allGenericos?.nombre}",
+                    text: "${productogenerico.item.nombre}",
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.bold, fontSize: 50.sp))
               ])),
@@ -138,8 +146,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     //color: Colors.amber,
                     image: DecorationImage(
                   fit: BoxFit.contain,
-                  image: NetworkImage(
-                      '${productogenerico.allGenericos?.fotos[0]}'),
+                  image: NetworkImage('${productogenerico.item?.fotos[0]}'),
                 )),
               ),
               SizedBox(
@@ -148,11 +155,13 @@ class _DetalleProductoState extends State<DetalleProducto> {
               Container(
                 height: 36.h,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: productogenerico.item.descuento > 0
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.spaceEvenly,
                   children: [
                     Text.rich(TextSpan(children: [
                       TextSpan(
-                          text: 'S/.${productogenerico.allGenericos?.precio}/',
+                          text: 'S/.${productogenerico.item?.precio}/',
                           style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -164,24 +173,29 @@ class _DetalleProductoState extends State<DetalleProducto> {
                               fontWeight: FontWeight.w300,
                               color: Color.fromRGBO(1, 37, 255, 1)))
                     ])),
-                    Container(
-                      height: 36.h,
-                      padding: EdgeInsets.only(left: 8, right: 8),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(1, 37, 255, 1),
-                          borderRadius: BorderRadius.circular(20.r)),
-                      child: Center(
-                        child: Text(
-                          "S/.${productogenerico.allGenericos?.descuento} DCTO",
-                          style: GoogleFonts.manrope(
-                              color: Colors.white, fontSize: 15.sp),
-                        ),
-                      ),
-                    ),
+                    productogenerico.item.descuento > 0
+                        ? Container(
+                            height: 36.h,
+                            padding: EdgeInsets.only(left: 8, right: 8),
+                            decoration: BoxDecoration(
+                                color: Color.fromRGBO(1, 37, 255, 1),
+                                borderRadius: BorderRadius.circular(20.r)),
+                            child: Center(
+                              child: Text(
+                                "S/.${productogenerico.item?.descuento} DCTO",
+                                style: GoogleFonts.manrope(
+                                    color: Colors.white, fontSize: 15.sp),
+                              ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
                     Text(
                       "Reg: S/.30PEN",
                       style: GoogleFonts.manrope(
-                          color: Colors.grey, fontSize: 15.sp),
+                        color: const Color.fromARGB(255, 136, 136, 136),
+                        fontSize: 15.sp,
+                        decoration: TextDecoration.lineThrough,
+                      ),
                     )
                   ],
                 ),
@@ -206,8 +220,8 @@ class _DetalleProductoState extends State<DetalleProducto> {
                         IconButton(
                             onPressed: () {
                               setState(() {
-                                if (contador > 1) {
-                                  contador--;
+                                if (productogenerico.item.cantidad > 1) {
+                                  productogenerico.item.cantidad--;
                                 }
                               });
                             },
@@ -219,7 +233,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              "$contador",
+                              "${productogenerico.item.cantidad}",
                               style: GoogleFonts.manrope(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14.sp,
@@ -230,8 +244,8 @@ class _DetalleProductoState extends State<DetalleProducto> {
                         IconButton(
                             onPressed: () {
                               setState(() {
-                                if (contador < 99) {
-                                  contador++;
+                                if (productogenerico.item.cantidad < 99) {
+                                  productogenerico.item.cantidad++;
                                 }
                               });
                             },
@@ -251,7 +265,10 @@ class _DetalleProductoState extends State<DetalleProducto> {
                         border: Border.all(
                             width: 2, color: Color.fromRGBO(1, 37, 255, 1))),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Provider.of<CarritoProvider>(context, listen: false)
+                            .agregarProducto(productogenerico.item);
+                      },
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
@@ -339,7 +356,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                       //height: 24.h,
                       width: 54.w,
                       child: Text(
-                        "${productogenerico.allGenericos?.valoracion ?? 4.4}",
+                        "${productogenerico.item?.valoracion ?? 4.4}",
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           fontSize: 34.sp,

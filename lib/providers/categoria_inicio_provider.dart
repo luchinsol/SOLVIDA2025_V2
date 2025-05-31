@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:app2025v2/models/categoria_inicio_model.dart';
 import 'package:app2025v2/models/categoria_model.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class CategoriaInicioProvider extends ChangeNotifier {
   String microurl = dotenv.env['MICRO_URL'] ?? '';
@@ -14,11 +16,15 @@ class CategoriaInicioProvider extends ChangeNotifier {
   CategoriaSubcategoriaModel? get allcategoria_subcategoria =>
       _categoriaSubcategoriaModel;
 
-  Future<void> getCategoriaSubcategoria(int? id) async {
+  Future<void> getCategoriaSubcategoria(int? id, int ubicacionClienteId) async {
     try {
-      final subcategoriaId = id ?? 1;
-      var res =
-          await http.get(Uri.parse('$microurl/categoria/${subcategoriaId}/1'));
+      _categoriaSubcategoriaModel = null;
+      notifyListeners();
+      print("....SE CARGA EL HOME CON LA CATEGORIA ESCOGIDA");
+      // SUBCATEGORÍA POR DEFECTO ARRANCA EN EL AGUA
+      final categoriaId = id ?? 1;
+      var res = await http.get(Uri.parse(
+          '$microurl/categoria/${categoriaId}/${ubicacionClienteId}'));
       if (res.statusCode == 200) {
         var data = jsonDecode(res.body);
         _categoriaSubcategoriaModel = CategoriaSubcategoriaModel.fromJson(data);
@@ -26,8 +32,13 @@ class CategoriaInicioProvider extends ChangeNotifier {
         print(data);
         notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       throw Exception("Error query $e");
     }
+  }
+
+  void limpiarCategoriaSubModel() {
+    _categoriaSubcategoriaModel = null;
   }
 }

@@ -1,12 +1,13 @@
-import 'package:app2025v2/models/generico_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
+import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ItemCarrito extends StatefulWidget {
-  final GenericoModel producto;
+  final dynamic producto;
   final int index;
   const ItemCarrito({super.key, required this.producto, required this.index});
 
@@ -31,12 +32,20 @@ class _ItemCarritoState extends State<ItemCarrito> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 55.w,
-                    height: 55.w,
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: NetworkImage(widget.producto.fotos[0]))),
+                  GestureDetector(
+                    onTap: () {
+                      Provider.of<DetalleProductoProvider>(context,
+                              listen: false)
+                          .cargar(widget.producto);
+                      context.push('/detalle_producto');
+                    },
+                    child: Container(
+                      width: 55.w,
+                      height: 55.w,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: NetworkImage(widget.producto.fotos[0]))),
+                    ),
                   ),
                   SizedBox(width: 10.w),
                   Column(

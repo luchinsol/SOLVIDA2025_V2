@@ -16,7 +16,7 @@ class CategoriaProvider extends ChangeNotifier {
 // MÉTODO - LLAMADA DE API
   Future<void> getCategorias() async {
     try {
-      var res = await http.get(Uri.parse(microurl + '/categoria'));
+      var res = await http.get(Uri.parse('$microurl/categoria'));
       if (res.statusCode == 200) {
         var data = jsonDecode(res.body);
         _categorias = List<CategoriaModel>.from(
