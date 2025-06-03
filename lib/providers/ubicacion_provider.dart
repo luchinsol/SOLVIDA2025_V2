@@ -28,28 +28,37 @@ class UbicacionProvider extends ChangeNotifier {
     print("id $id");
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('ubicacionSeleccionada', id);
-    notifyListeners();
+
     // Automáticamente verificar si está fuera de la zona
     await verificacionUbicacionSeleccionada(id);
+    notifyListeners();
   }
 
   Future<void> verificacionUbicacionSeleccionada(int idUbicacion) async {
     try {
-      if (idUbicacion == 57) {
+      print(",,,,,verificando si cumples CON EL ÁREA DE REPATO");
+      var res = await http
+          .get(Uri.parse("$microUrl/ubicacion_seleccionada/$idUbicacion"));
+      if (res.statusCode == 200) {
+        var data = jsonDecode(res.body);
         _dentrodelarea = true;
+        print("dentro del área de reparto");
         notifyListeners();
-        print("---Estas dentro");
       } else {
+        print("...NO CUMPLES");
         _dentrodelarea = false;
         notifyListeners();
-        print("...Estas FUERA");
       }
-    } catch (e) {}
+    } catch (e) {
+      throw Exception("Error en la verificacion $e");
+    }
   }
 
   Future<void> cargarUbicacionSeleccionada() async {
     final prefs = await SharedPreferences.getInstance();
     _idSeleccionado = prefs.getInt('ubicacionSeleccionada');
+    print("selecionadio id");
+    print(_idSeleccionado);
     notifyListeners();
   }
 
@@ -57,27 +66,44 @@ class UbicacionProvider extends ChangeNotifier {
 
   Future<void> postNewUbicacion(
       {required String? distrito,
+      required String? departamento,
       required String? direccion,
       required String? etiqueta,
       required double? latitud,
       required double? longitud,
+      required String? numero_manzana,
       required int? cliente_id}) async {
     try {
       print("..........dentro del POST PROVIDER");
       print(distrito);
       print(direccion);
+      final body = {
+        "departamento": departamento,
+        "distrito": distrito,
+        "direccion": direccion,
+        "latitud": latitud,
+        "longitud": longitud,
+        "cliente_id": cliente_id,
+        "etiqueta": etiqueta
+      };
+
+      print("BODY POST: $body");
+
       var res = await http.post(Uri.parse("$microUrl/ubicacion_cliente"),
           headers: {
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
+            "departamento": departamento,
             "distrito": distrito,
             "direccion": direccion,
             "latitud": latitud,
             "longitud": longitud,
             "cliente_id": cliente_id,
-            "etiqueta": etiqueta
+            "etiqueta": etiqueta,
+            "numero_manzana": numero_manzana
           }));
+      print(".........CODE HTTP ${res.statusCode}");
       if (res.statusCode == 201) {
         var data = jsonDecode(res.body);
         print(".....DATA POST");
@@ -87,20 +113,58 @@ class UbicacionProvider extends ChangeNotifier {
         await seleccionarUbicacion(nuevaUbicacion.id!);
         print(data);
         notifyListeners();
+      } else if (res.statusCode == 400) {
+        throw Exception("Ubicación fuera de cobertura");
       }
       notifyListeners();
     } catch (e) {
       throw Exception("Error en la petición: $e");
     }
   }
-/*
-UbicacionModel? get getUbicacionSeleccionada {
-  if (_idSeleccionado == null) return null;
-  return _ubicaciones.firstWhere(
-    (u) => u.id == _idSeleccionado,
-    orElse: () => null,
-  );
-}*/
+
+  Future<void> updateUbicacion(
+      String? departamento,
+      String? distrito,
+      String? direccion,
+      String? numero_manzana,
+      String? etiqueta,
+      double latitud,
+      double longitud,
+      int idUbicacion) async {
+    try {
+      var res = await http
+          .put(Uri.parse("$microUrl/actualizar_ubicacion/$idUbicacion"),
+              body: jsonEncode({
+                "departamento": departamento,
+                "distrito": distrito,
+                "direccion": direccion,
+                "numero_manzana": numero_manzana,
+                "etiqueta": etiqueta,
+                "latitud": latitud,
+                "longitud": longitud
+              }),
+              headers: {"Content-type": "application/json"});
+      if (res.statusCode == 200) {
+        print("....actualizadoa");
+        var data = jsonDecode(res.body);
+        final actualizada = UbicacionModel.fromJson(data);
+
+// Actualiza la lista
+        int index = _ubicaciones.indexWhere((u) => u.id == actualizada.id);
+        if (index != -1) {
+          _ubicaciones[index] = actualizada;
+        }
+
+// Actualiza el temporal con datos frescos
+        setTemporal(actualizada);
+        // 🔥 Verifica si está dentro del área de reparto
+        await verificacionUbicacionSeleccionada(idUbicacion);
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error en la peticion: $e");
+    }
+  }
 
   Future<void> ubicacionSeleccionada(int id) async {
     try {

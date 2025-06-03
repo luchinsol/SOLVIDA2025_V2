@@ -21,16 +21,19 @@ class SubcategoriaModel {
 
   factory SubcategoriaModel.fromJson(Map<String, dynamic> json) {
     return SubcategoriaModel(
-        id: json['id'],
-        nombre: json['nombre'],
-        icono: json['icono'],
-        fecha_inicio: json['fecha_inicio'],
-        fecha_fin: json['fecha_fin'],
-        productos: (json['productos'] as List)
-            .map((item) => ProductoModel.fromJson(item))
-            .toList(),
-        promociones: (json['promociones'] as List)
-            .map((item) => PromocionModel.fromJson(item))
-            .toList());
+      id: json['id'],
+      nombre: json['nombre'],
+      icono: json['icono'],
+      fecha_inicio: json['fecha_inicio'],
+      fecha_fin: json['fecha_fin'],
+      productos: (json['productos'] != null)
+          ? List<ProductoModel>.from(
+              json['productos'].map((item) => ProductoModel.fromJson(item)))
+          : [],
+      promociones: (json['promociones'] != null)
+          ? List<PromocionModel>.from(
+              json['promociones'].map((item) => PromocionModel.fromJson(item)))
+          : [],
+    );
   }
 }

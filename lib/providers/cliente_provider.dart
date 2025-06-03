@@ -86,10 +86,13 @@ class ClienteProvider extends ChangeNotifier {
           await http.get(Uri.parse('$microUrl/userfirebase/$firebaseUid'));
 
       if (res.statusCode == 200) {
+        print("...");
         final data = jsonDecode(res.body);
         _cliente = ClienteCompletoModel.fromJson(data);
+        print("fetch 20'0");
         notifyListeners();
       } else if (res.statusCode == 404) {
+        print("ffetch 404");
         _cliente = null; // Cliente no encontrado
         notifyListeners();
       } else {

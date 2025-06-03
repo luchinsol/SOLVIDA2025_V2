@@ -83,7 +83,10 @@ class _LoginState extends State<Login> {
       print("tiene ubicacion o no ?");
       if (cantidadUbicacionesCliente > 0) {
         await ubicacionProvider.cargarUbicacionSeleccionada();
-
+        if (ubicacionProvider.idSeleccionado != null) {
+          await ubicacionProvider.verificacionUbicacionSeleccionada(
+              ubicacionProvider.idSeleccionado!);
+        }
         context.go('/barracliente');
       } else {
         context.go('/previa');
@@ -174,7 +177,14 @@ class _LoginState extends State<Login> {
       int cantidadUbicacionesCliente = ubicacionProvider.allubicaciones.length;
 
       if (cantidadUbicacionesCliente > 0) {
+        print("....ayudaaa");
         await ubicacionProvider.cargarUbicacionSeleccionada();
+        if (ubicacionProvider.idSeleccionado != null) {
+          print("....aquiiiiiiiiiiiiiiii");
+          await ubicacionProvider.verificacionUbicacionSeleccionada(
+              ubicacionProvider.idSeleccionado!);
+        }
+        print(".........oee");
         context.go('/barracliente');
       } else {
         context.go('/previa');

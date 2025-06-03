@@ -1,4 +1,7 @@
+import 'package:app2025v2/models/cupon_model.dart';
+import 'package:app2025v2/models/cuponcategoria_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
+import 'package:app2025v2/providers/cupon_provider.dart';
 import 'package:app2025v2/views/sol.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
@@ -8,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class Cupones extends StatefulWidget {
   const Cupones({Key? key}) : super(key: key);
@@ -18,16 +22,9 @@ class Cupones extends StatefulWidget {
 
 class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  final List<String> chips = [
-    'Todo',
-    'Agua',
-    'Accesorios',
-    'Hogar',
-    'Agua',
-    'Accesorios',
-    'Hogar'
-  ];
+
   int selectedIndex = 0;
+  bool _isFirstLoad = true;
 
   @override
   void initState() {
@@ -39,6 +36,15 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad) {
+      context.read<CuponProvider>().getallcupones();
+      _isFirstLoad = false;
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose(); // Siempre se limpia
     super.dispose();
@@ -47,6 +53,13 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final carritoProvider = context.watch<CarritoProvider>();
+    final cuponProvider = context.watch<CuponProvider>();
+    List<CuponCategoriaModel> categorias = cuponProvider.cuponesall;
+    if (cuponProvider.cuponesall.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    // final cupones = cuponProvider.cuponesall;
     return Scaffold(
       //backgroundColor: Color.fromRGBO(1, 37, 255, 1),
       backgroundColor: Colors.white,
@@ -150,32 +163,6 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                             fontSize: 20.sp,
                             letterSpacing: 10),
                       ).animate().flip(),
-
-                      /* Container(
-                        height: 65.h,
-                        child: AnimatedTextKit(
-                          animatedTexts: [
-                            RotateAnimatedText('AWESOME'),
-                            RotateAnimatedText('OPTIMISTIC'),
-                            RotateAnimatedText('DIFFERENT'),
-
-                            /*
-                            ScaleAnimatedText('%off',
-                                scalingFactor: 0.8,
-                                textStyle: GoogleFonts.manrope(
-                                    fontSize: 50, color: Colors.white)),
-                            ScaleAnimatedText('%off',
-                                scalingFactor: 0.8,
-                                textStyle: GoogleFonts.manrope(
-                                    fontSize: 50, color: Colors.white)),*/
-                          ],
-                          repeatForever: true,
-                          isRepeatingAnimation: true,
-                          onTap: () {
-                            print("Tap Event");
-                          },
-                        ),
-                      ),*/
                     ],
                   ),
                 ),
@@ -208,11 +195,12 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
             child: Column(
               children: [
                 // FILTROS DE SELECCIÓN CATEGORÍAS
+
                 Container(
                   height: 40.h,
                   child: ListView(scrollDirection: Axis.horizontal, children: [
                     Row(
-                      children: List.generate(chips.length, (index) {
+                      children: List.generate(categorias.length, (index) {
                         final bool isSelected = selectedIndex == index;
 
                         return Padding(
@@ -222,6 +210,7 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                               setState(() {
                                 selectedIndex = index;
                                 print("Select $selectedIndex");
+                                print("${categorias[index].nombre_categoria}");
                               });
                             },
                             borderRadius: BorderRadius.circular(20),
@@ -237,7 +226,7 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                 ),
                               ),
                               child: Text(
-                                chips[index],
+                                categorias[index].nombre_categoria,
                                 style: GoogleFonts.manrope(
                                   color: isSelected
                                       ? Colors.white
@@ -260,7 +249,11 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                 Container(
                   height: 1.sh - 420.h,
                   child: ListView.builder(
+                    itemCount:
+                        cuponProvider.cuponesall[selectedIndex].cupones.length,
                     itemBuilder: (context, index) {
+                      final cuponActual = cuponProvider
+                          .cuponesall[selectedIndex].cupones[index];
                       return Column(
                         children: [
                           Container(
@@ -270,13 +263,14 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(20.r)),
                             child: Column(
                               children: [
+                                // Foto del cupon actual
                                 Container(
                                   height: 148.h,
                                   decoration: BoxDecoration(
                                       image: DecorationImage(
                                           fit: BoxFit.fill,
-                                          image: AssetImage(
-                                              'lib/assets/imagenes/fiesta.jpg')),
+                                          image:
+                                              NetworkImage(cuponActual.foto)),
                                       color: Colors.amber,
                                       borderRadius:
                                           BorderRadius.circular(20.r)),
@@ -287,12 +281,14 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                       RotatedBox(
                                         quarterTurns: -1,
                                         child: Text(
-                                          "Descuento",
+                                          "${cuponActual.titulo}",
                                           style: GoogleFonts.manrope(
                                               fontSize: 23.sp,
+                                              color: Colors.white,
                                               fontWeight: FontWeight.w200),
                                         ),
                                       ),
+                                      // LINEAS DE CORTE
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -313,6 +309,8 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                                   ],
                                                 )),
                                       ),
+
+                                      // TITULO Y DESCRIPCION DEL CUPON
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -330,14 +328,18 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                                         BorderRadius.circular(
                                                             50.r),
                                                     image: DecorationImage(
-                                                        image: AssetImage(
-                                                            'lib/assets/imagenes/logo.png'))),
+                                                        image: NetworkImage(
+                                                            cuponActual
+                                                                .productos
+                                                                .first
+                                                                .foto
+                                                                .first))),
                                               ),
                                               SizedBox(
                                                 width: 30.w,
                                               ),
                                               Text(
-                                                "-25%",
+                                                "-${cuponActual.porcentaje}%",
                                                 style: GoogleFonts.manrope(
                                                     color: Colors.white,
                                                     fontSize: 55.sp,
@@ -347,7 +349,7 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                             ],
                                           ),
                                           Text(
-                                            "¡Genial! obtuviste un descuento en tu pedido",
+                                            "${cuponActual.cupon_nombre}",
                                             style: GoogleFonts.manrope(
                                                 fontSize: 12.sp,
                                                 fontWeight: FontWeight.bold,
@@ -358,6 +360,8 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                     ],
                                   ),
                                 ),
+
+                                // T Y C
                                 Padding(
                                   padding:
                                       EdgeInsets.only(left: 10.0, top: 5.r),
@@ -370,7 +374,7 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "* Válido ingresando el código de referido",
+                                            "* ${cuponActual.regla_descuento}",
                                             style: GoogleFonts.manrope(
                                                 color: Color.fromRGBO(
                                                     1, 37, 255, 1),
@@ -378,7 +382,7 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           Text(
-                                            "* Válido: 25 Julio - 30 Agosto",
+                                            "* Válido:${DateFormat('dd MMMM', 'es_ES').format(cuponActual.fecha_inicio)} al ${DateFormat('dd MMMM', 'es_ES').format(cuponActual.fecha_fin)}",
                                             style: GoogleFonts.manrope(
                                                 color: Colors.white,
                                                 fontSize: 11.sp,
@@ -386,6 +390,8 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                           )
                                         ],
                                       ),
+
+                                      // BOTÓN DE USO
                                       Container(
                                         width: 110.w,
                                         height: 26.h,
@@ -393,7 +399,33 @@ class _CuponesState extends State<Cupones> with SingleTickerProviderStateMixin {
                                             onPressed: () {
                                               if (carritoProvider.totalItems >
                                                   0) {
-                                                print("...usamos cupon");
+                                                print(
+                                                    "...usamos cupon ${cuponActual.productos.first.id} ${cuponActual.productos.first.nombre}");
+                                                CuponModel cuponEscogido =
+                                                    CuponModel(
+                                                        id: cuponActual.id,
+                                                        titulo:
+                                                            cuponActual.titulo,
+                                                        cupon_nombre:
+                                                            cuponActual
+                                                                .cupon_nombre,
+                                                        foto: cuponActual.foto,
+                                                        fecha_inicio:
+                                                            cuponActual
+                                                                .fecha_inicio,
+                                                        fecha_fin: cuponActual
+                                                            .fecha_fin,
+                                                        regla_descuento:
+                                                            cuponActual
+                                                                .regla_descuento,
+                                                        porcentaje: cuponActual
+                                                            .porcentaje,
+                                                        productos: cuponActual
+                                                            .productos);
+
+                                                cuponProvider
+                                                    .setearCupon(cuponEscogido);
+                                                ;
                                               } else {
                                                 showDialog(
                                                   context: context,

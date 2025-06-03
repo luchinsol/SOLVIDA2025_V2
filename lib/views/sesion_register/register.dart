@@ -51,6 +51,7 @@ class _RegisterState extends State<Register> {
         password: pass,
       );
 
+// POSTEO revisado lunes fallo el post
       await Provider.of<ClienteProvider>(context, listen: false)
           .postClienteData(
               email: email,

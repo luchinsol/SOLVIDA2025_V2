@@ -8,9 +8,13 @@ import 'package:provider/provider.dart';
 // CATEGORÍA
 Widget categoria(BuildContext context, dynamic item) {
   final ubicacionProvider =
-      Provider.of<UbicacionProvider>(context, listen: false)
-          .allubicaciones
-          .first;
+      Provider.of<UbicacionProvider>(context, listen: false);
+
+  if (ubicacionProvider.allubicaciones.isEmpty) {
+    return SizedBox(); // o un mensaje de error temporal
+  }
+
+  final ubicacion = ubicacionProvider.allubicaciones.first;
 
   return Container(
     width: 80.w,
@@ -38,7 +42,7 @@ Widget categoria(BuildContext context, dynamic item) {
             try {
               // Esperar a que cargue la categoría
               await Provider.of<CategoriaInicioProvider>(context, listen: false)
-                  .getCategoriaSubcategoria(item.id, ubicacionProvider.id!);
+                  .getCategoriaSubcategoria(item.id, ubicacion.id!);
             } catch (e) {
               print("Error cargando categoría: $e");
             } finally {
