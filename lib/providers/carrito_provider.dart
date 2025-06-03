@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:app2025v2/models/pedido_model.dart';
 import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 class CarritoProvider extends ChangeNotifier {
   int get totalItems => _productoN.length + _promociones.length;
@@ -9,8 +14,8 @@ class CarritoProvider extends ChangeNotifier {
   List<dynamic> get itemsCombinados => [..._productoN, ..._promociones];
 
   double sumatotalPedido = 0;
+  String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
-  // Funciones
   void agregarProducto(dynamic producto) {
     if (producto is ProductoModel) {
       final yaExiste = _productoN.any((p) => p.id == producto.id);

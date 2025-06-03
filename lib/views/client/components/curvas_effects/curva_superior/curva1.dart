@@ -43,9 +43,8 @@ class Curva1 extends StatelessWidget {
         height: 480.h,
         decoration: BoxDecoration(
             color: const Color.fromARGB(255, 54, 67, 253),
-            image: DecorationImage(
-                fit: BoxFit.fill,
-                image: AssetImage('lib/assets/imagenes/${fondo}'))),
+            image:
+                DecorationImage(fit: BoxFit.fill, image: NetworkImage(fondo))),
 
         // STACKEANDO EL FONDO
         child: Stack(

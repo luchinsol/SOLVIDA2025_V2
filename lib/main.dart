@@ -3,9 +3,11 @@ import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/cupon_provider.dart';
 import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/providers/iniciarapp_provider.dart';
+import 'package:app2025v2/providers/novedades_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
@@ -34,6 +36,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -46,6 +49,7 @@ Future<void> main() async {
       .requestNotificationPermission(); // Solicita permisos
   await notificationsService.initNotification(); // Configura las notificaciones
   // final usuarioPrefs = await SharedPreferences.getInstance();
+  await initializeDateFormatting('es_ES', null);
 
   runApp(MultiProvider(
     providers: [
@@ -60,6 +64,8 @@ Future<void> main() async {
       ChangeNotifierProvider(create: (context) => TemperaturaProvider()),
       ChangeNotifierProvider(create: (context) => DetalleProductoProvider()),
       ChangeNotifierProvider(create: (context) => UbicacionProvider()),
+      ChangeNotifierProvider(create: (context) => CuponProvider()),
+      ChangeNotifierProvider(create: (context) => NovedadesProvider())
     ],
     child: const MyApp(),
   ));

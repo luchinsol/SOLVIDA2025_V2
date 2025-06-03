@@ -3,11 +3,14 @@ import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
+import 'package:app2025v2/providers/cupon_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
+import 'package:app2025v2/views/client/components/cupontarjeta.dart';
 import 'package:app2025v2/views/client/components/items.dart';
 import 'package:app2025v2/views/client/components/subcategorias/tarjeta_sub.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -92,6 +95,7 @@ class _CarritoState extends State<Carrito> {
   bool _seleccionado = false;
   @override
   Widget build(BuildContext context) {
+    final cuponProvider = context.watch<CuponProvider>();
     final carritProvider = context.watch<CarritoProvider>();
     final categoriaProvider =
         Provider.of<CategoriaInicioProvider>(context, listen: false);
@@ -291,182 +295,40 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 18.h,
                           ),
-                          /*Text(
-                        "Cupón de descuento",
-                        style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.bold, fontSize: 14.sp),
-                      ),
-                      SizedBox(
-                        height: 18.h,
-                      ),
-                      Container(
-                        height: 85.h,
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            borderRadius: BorderRadius.circular(15.r)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
+                          if (cuponProvider.cargarCupon != null) ...[
+                            // METODO DE PAGO
+
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Padding(
-                                  padding: EdgeInsets.only(left: 0),
-                                  child: Container(
-                                    width: 250.w,
-                                    height: 50.h,
-                                    //color: Colors.white,
-                                    child: TextFormField(
-                                      controller: _controllerCodigo,
-                                      decoration: InputDecoration(
-                                        hintText: "Ingresa tu cupón",
-                                        /*contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 20.sp, vertical: 16.sp),*/
-                    
-                                        // labelText: "Email o usuario",
-                                        labelStyle: GoogleFonts.manrope(
-                                            fontSize: 11.sp,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                        filled: true,
-                                        fillColor: Color.fromRGBO(
-                                            246, 246, 246, 1), // Fondo blanco
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Colors.black),
-                                            borderRadius:
-                                                BorderRadius.circular(15)),
-                                      ),
-                                    ),
-                                  ),
+                                Text(
+                                  "Cupón de descuento",
+                                  style: GoogleFonts.manrope(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.sp),
                                 ),
                                 TextButton(
                                     onPressed: () {
-                                      setState(() {
-                                        if (_controllerCodigo.text == "SOLVIDA") {
-                                          codigoValido = true;
-                                        }
-                                      });
+                                      cuponProvider.limpiarCupon();
                                     },
-                                    child: Text(
-                                      "Aplicar",
-                                      style: GoogleFonts.manrope(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color.fromRGBO(1, 37, 255, 1)),
-                                    ))
+                                    child: Text("Quitar cupón",
+                                        style: GoogleFonts.manrope(
+                                            color:
+                                                Color.fromRGBO(1, 37, 255, 1),
+                                            fontSize: 14.sp))),
                               ],
                             ),
                             SizedBox(
-                              height: 10.h,
+                              height: 18.h,
                             ),
-                            Text.rich(TextSpan(children: [
-                              TextSpan(
-                                  text: "Usa el código ",
-                                  style: GoogleFonts.manrope(fontSize: 14.sp)),
-                              TextSpan(
-                                  text: "SOLVIDA",
-                                  style: GoogleFonts.manrope(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14.sp)),
-                              TextSpan(
-                                  text: " y obtén descuento ",
-                                  style: GoogleFonts.manrope(fontSize: 14.sp)),
-                            ]))
+                            CuponCard(cupon: cuponProvider.cargarCupon!)
+                                .animate()
+                                .shake()
+                                .fadeIn(),
+                            SizedBox(
+                              height: 18.h,
+                            ),
                           ],
-                        ),
-                      ),
-                      if (codigoValido) ...[
-                        SizedBox(
-                          height: 20.h,
-                        ),
-                        Container(
-                          height: 148.h,
-                          decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(25.r),
-                                  bottomLeft: Radius.circular(25.r))),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              RotatedBox(
-                                quarterTurns: -1,
-                                child: Text(
-                                  "Descuento",
-                                  style: GoogleFonts.manrope(
-                                      fontSize: 23.sp,
-                                      fontWeight: FontWeight.w200),
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: List.generate(
-                                    19,
-                                    (int index) => Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                              width: 2.5,
-                                              height: 2.5,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(
-                                              height: 5.0,
-                                            )
-                                          ],
-                                        )),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "-25%",
-                                        style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                            fontSize: 60.sp,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        width: 20.w,
-                                      ),
-                                      Container(
-                                        width: 71.w,
-                                        height: 71.h,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage(
-                                                    'lib/assets/imagenes/logo.png'))),
-                                      )
-                                    ],
-                                  ),
-                                  Text(
-                                    "¡Genial! obtuviste un descuento en tu pedido",
-                                    style: GoogleFonts.manrope(
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                  Text(
-                                    "Válido: 24 de Julio - 30 de Agosto",
-                                    style: GoogleFonts.manrope(
-                                        fontSize: 10.sp,
-                                        fontWeight: FontWeight.w500),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                      SizedBox(
-                        height: 23.h,
-                      ),*/
 
                           // METODO DE PAGO
                           Text(
@@ -841,9 +703,10 @@ class _CarritoState extends State<Carrito> {
                                       ),
                                       backgroundColor:
                                           Color.fromRGBO(1, 37, 255, 1)),
-                                  onPressed: _seleccionado
+                                  onPressed: _seleccionado // metodo de pago
                                       ? () {
                                           carritProvider.deleteCarrito();
+
                                           context.go('/fin_pedido');
                                         }
                                       : null,

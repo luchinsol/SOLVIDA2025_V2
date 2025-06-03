@@ -7,6 +7,7 @@ import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
+import 'package:app2025v2/providers/novedades_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
@@ -255,14 +256,14 @@ class _Inicio2State extends State<Inicio2> {
     final clienteProvider =
         Provider.of<ClienteProvider>(context, listen: false).clienteActual;
 
-    // Llama una vez para obtener los eventos
-    /* WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Llama una vez para obtener los eventos --- descomentado hoy lunes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final clienteID = clienteProvider?.cliente.id;
       if (mounted) {
         Provider.of<UbicacionProvider>(context, listen: false)
             .getUbicaciones(clienteID!);
       }
-    });*/
+    });
 
     // Llama una vez para obtener los eventos
     /* WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -286,11 +287,18 @@ class _Inicio2State extends State<Inicio2> {
 
         final ubicacionCliente =
             Provider.of<UbicacionProvider>(context, listen: false)
-                .allubicaciones
-                .first;
-// SE ENVIA NULL POR DEFAULT
-        Provider.of<CategoriaInicioProvider>(context, listen: false)
-            .getCategoriaSubcategoria(null, ubicacionCliente.id!);
+                .allubicaciones;
+
+        if (ubicacionCliente.isNotEmpty) {
+          // SE ENVIA NULL POR DEFAULT
+          final ubicacion = ubicacionCliente.first;
+          Provider.of<CategoriaInicioProvider>(context, listen: false)
+              .getCategoriaSubcategoria(null, ubicacion.id!);
+        } else {
+          print(
+              "❗ No hay ubicaciones cargadas. No se puede cargar categorías.");
+          // Si es la pantalla principal, podrías redirigir o mostrar un mensaje.
+        }
       }
     });
 
@@ -299,6 +307,12 @@ class _Inicio2State extends State<Inicio2> {
       if (mounted) {
         Provider.of<TemperaturaProvider>(context, listen: false)
             .getTemperatura();
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<NovedadesProvider>(context, listen: false).getNovedades();
       }
     });
 
@@ -353,6 +367,14 @@ class _Inicio2State extends State<Inicio2> {
     final carritoProvider = context.watch<CarritoProvider>();
     //bool estoyenreparto = context.watch<UbicacionProvider>().fueradelarea;
     final ubicacionProvider = context.watch<UbicacionProvider>();
+
+    final novedadesProvider = context.watch<NovedadesProvider>();
+    int totaldenovedades = novedadesProvider.allnovedades!.length;
+    final mitadNovedades = (totaldenovedades / 2).ceil();
+    final primeraMitad =
+        novedadesProvider.allnovedades!.take(mitadNovedades).toList();
+    final segundaMitad =
+        novedadesProvider.allnovedades!.skip(mitadNovedades).toList();
 
     // ⛔ Asegurarse de que hay eventos antes de seguir
     if (eventos.isEmpty) {
@@ -464,8 +486,8 @@ class _Inicio2State extends State<Inicio2> {
                                 decoration: BoxDecoration(
                                   //  color: const Color.fromARGB(255, 100, 125, 134),
                                   image: DecorationImage(
-                                    image: AssetImage(
-                                        'lib/assets/imagenes/${banners[_bannerIndex].foto}'),
+                                    image: NetworkImage(
+                                        banners[_bannerIndex].foto),
                                     fit: BoxFit.fill,
                                   ),
                                 ),
@@ -543,24 +565,11 @@ class _Inicio2State extends State<Inicio2> {
                         SizedBox(
                           height: 31.h,
                         ),
-                        // ----------------------- NOTIFICACION DEMO
-                        ElevatedButton(
-                          onPressed: () async {
-                            // Ejemplo: Mostrar notificación con acciones
-                            await notificationsService.showOrderNotification(
-                              id: 1,
-                              title: 'Nuevo pedido',
-                              body:
-                                  '🛍️🔥 ¡Descuentos de hasta el 50%! 🕒 Solo por tiempo limitado.👉 ¡Toca para aprovecharlo ya!',
-                              payload: 'order_123', // Datos adicionales
-                            );
-                          },
-                          child: Text('Mostrar Notificación'),
-                        ),
 
                         // CONDICION DE UBICACION CON ZONA y que refresque el home
                         if (ubicacionProvider.dentrodeArea) ...[
                           // NOVEDADES
+                          //print("........dentro de area en INCICIOO");
                           Text(
                             "Novedades",
                             style: GoogleFonts.manrope(
@@ -569,6 +578,8 @@ class _Inicio2State extends State<Inicio2> {
                           SizedBox(
                             height: 23.h,
                           ),
+
+                          // CARD NOVEDADES
                           Container(
                             height: 172.h,
                             key: _imageKey,
@@ -576,15 +587,13 @@ class _Inicio2State extends State<Inicio2> {
                             child: ListView.builder(
                                 controller: _pageController,
                                 scrollDirection: Axis.horizontal,
-                                itemCount: 3,
+                                itemCount: primeraMitad.length,
                                 itemBuilder: (context, index) {
-                                  return tarjetas(
-                                      '-20%',
-                                      'Paquetes 700ml S/.36 todo el año',
-                                      'Accesorios',
-                                      'lib/assets/imagenes/bodegon.png');
+                                  final novedad = primeraMitad[index];
+
+                                  return tarjetas(novedad, context);
                                 }),
-                          ),
+                          ).animate().flipV(),
                           SizedBox(
                             height: 20.h,
                           ),
@@ -774,13 +783,11 @@ class _Inicio2State extends State<Inicio2> {
                             child: ListView.builder(
                                 controller: _pageController,
                                 scrollDirection: Axis.horizontal,
-                                itemCount: 3,
+                                itemCount: segundaMitad.length,
                                 itemBuilder: (context, index) {
-                                  return tarjetas(
-                                      '-20%',
-                                      'Paquetes 700ml S/.36 todo el año',
-                                      'Accesorios',
-                                      'lib/assets/imagenes/bodegon.png');
+                                  final novedadMitad = segundaMitad[index];
+
+                                  return tarjetas(novedadMitad, context);
                                 }),
                           ),
                           SizedBox(
@@ -895,11 +902,11 @@ class _Inicio2State extends State<Inicio2> {
                           ),
                         ] else ...[
                           SizedBox(
-                            height: 50.h,
+                            height: 20.h,
                           ),
                           Center(
                             child: Container(
-                              height: 50.h,
+                              height: 100.h,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20.r),
                                   border: Border.all(color: Colors.grey)),
@@ -913,16 +920,24 @@ class _Inicio2State extends State<Inicio2> {
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
+                                  SizedBox(
+                                    height: 10.h,
+                                  ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.warning_amber_rounded,
-                                        color: Colors.grey,
+                                        color: Colors.amber,
+                                      ),
+                                      SizedBox(
+                                        width: 10.w,
                                       ),
                                       Text(
-                                        "Selecciona otra ubicación",
+                                        "Desbes seleccionar otra ubicación",
                                         style: GoogleFonts.manrope(
+                                            color:
+                                                Color.fromRGBO(1, 37, 255, 1),
                                             fontSize: 14.sp,
                                             fontWeight: FontWeight.w400),
                                       ),

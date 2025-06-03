@@ -26,6 +26,7 @@ class CategoriaInicioProvider extends ChangeNotifier {
       var res = await http.get(Uri.parse(
           '$microurl/categoria/${categoriaId}/${ubicacionClienteId}'));
       if (res.statusCode == 200) {
+        print("....CAT CAT ${res.body}");
         var data = jsonDecode(res.body);
         _categoriaSubcategoriaModel = CategoriaSubcategoriaModel.fromJson(data);
         print("//////// -------- CAT --------- //////////");
@@ -40,5 +41,10 @@ class CategoriaInicioProvider extends ChangeNotifier {
 
   void limpiarCategoriaSubModel() {
     _categoriaSubcategoriaModel = null;
+  }
+
+  void setCategoriaSubcategoria(CategoriaSubcategoriaModel model) {
+    _categoriaSubcategoriaModel = model;
+    notifyListeners();
   }
 }

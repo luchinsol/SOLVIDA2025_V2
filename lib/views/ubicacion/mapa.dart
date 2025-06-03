@@ -252,18 +252,58 @@ class _MapaState extends State<Mapa> {
                             print("...........${ubicacionProvider?.id}");
                             if (ubicacionProvider?.id == null) {
                               print("...dentro de POST id ubi");
-                              await Provider.of<UbicacionProvider>(context,
-                                      listen: false)
-                                  .postNewUbicacion(
-                                      distrito: ubicacionProvider?.distrito,
-                                      direccion: ubicacionProvider?.direccion,
-                                      etiqueta: ubicacionProvider?.etiqueta,
-                                      latitud: _ubicacionSeleccionada?.latitude,
-                                      longitud:
-                                          _ubicacionSeleccionada?.longitude,
-                                      cliente_id: clienteProvider?.cliente.id);
+                              print(
+                                  "LATITUD seleccionada: ${_ubicacionSeleccionada?.latitude}");
+                              print(
+                                  "LONGITUD seleccionada: ${_ubicacionSeleccionada?.longitude}");
+                              try {
+                                await Provider.of<UbicacionProvider>(context,
+                                        listen: false)
+                                    .postNewUbicacion(
+                                        departamento:
+                                            ubicacionProvider?.departamento,
+                                        distrito: ubicacionProvider?.distrito,
+                                        direccion: ubicacionProvider?.direccion,
+                                        etiqueta: ubicacionProvider?.etiqueta,
+                                        latitud:
+                                            _ubicacionSeleccionada?.latitude,
+                                        numero_manzana:
+                                            ubicacionProvider?.numero_manzana,
+                                        longitud:
+                                            _ubicacionSeleccionada?.longitude,
+                                        cliente_id:
+                                            clienteProvider?.cliente.id);
+                              } catch (e) {
+                                print("Error creando ubicación: $e");
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: Text("Ubicación inválida"),
+                                    content: Text(
+                                        "La ubicación seleccionada está fuera de nuestra área de cobertura."),
+                                    actions: [
+                                      TextButton(
+                                        child: Text("OK"),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }
                             } else {
                               print("soy un EDIT");
+                              await Provider.of<UbicacionProvider>(context,
+                                      listen: false)
+                                  .updateUbicacion(
+                                      ubicacionProvider?.departamento,
+                                      ubicacionProvider?.distrito,
+                                      ubicacionProvider?.direccion,
+                                      ubicacionProvider?.numero_manzana,
+                                      ubicacionProvider?.etiqueta,
+                                      _ubicacionSeleccionada!.latitude,
+                                      _ubicacionSeleccionada!.longitude,
+                                      ubicacionProvider!.id!);
                             }
 
                             Navigator.pop(context);

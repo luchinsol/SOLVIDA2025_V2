@@ -1,10 +1,24 @@
+import 'package:app2025v2/providers/categoria_inicio_provider.dart';
+import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 // TARJETAS
-Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
+Widget tarjetas(dynamic novedad, BuildContext context) {
+  String? imageUrl;
+
+  if (novedad.promocion != null && novedad.promocion.fotos.isNotEmpty) {
+    imageUrl = novedad.promocion.fotos.first;
+  } else if (novedad.producto != null && novedad.producto.fotos.isNotEmpty) {
+    imageUrl = novedad.producto.fotos.first;
+  } else {
+    imageUrl =
+        'https://i.pinimg.com/736x/85/24/76/8524764d9aeb61b77974dc54004f2597.jpg'; // fallback si no hay imagen
+  }
   return Row(
     children: [
       // EXTERNO
@@ -52,9 +66,9 @@ Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            titulo,
+                            novedad.titulo,
                             style: GoogleFonts.manrope(
-                                fontSize: 26.sp,
+                                fontSize: 14.sp,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold),
                           ).animate().shake(
@@ -63,11 +77,11 @@ Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
                               height: 40.h,
                               //color: Colors.grey,
                               child: Text(
-                                subtitulo,
+                                novedad.descripcion,
                                 style: GoogleFonts.manrope(
-                                  fontSize: 13.sp,
+                                  fontSize: 12.sp,
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w400,
                                 ),
                                 softWrap:
                                     true, // Esto asegura que salte si necesita
@@ -78,7 +92,7 @@ Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
                             child: Chip(
                               label: Center(
                                 child: Text(
-                                  chip,
+                                  novedad.categoria.nombre,
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.manrope(
                                       fontWeight: FontWeight.w700,
@@ -98,26 +112,54 @@ Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
                       ),
                     ),
                   ),
-                  Container(
-                    width: 155.w,
-                    height: 145.h,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(imagen),
-                        // fit: BoxFit.contain,
+                  GestureDetector(
+                    onTap: () async {
+                      print("....entradon prodcuto");
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                      );
+
+                      final ubicacionId =
+                          context.read<UbicacionProvider>().idSeleccionado!;
+                      final categoriaInicioProvider =
+                          context.read<CategoriaInicioProvider>();
+
+                      await categoriaInicioProvider.getCategoriaSubcategoria(
+                        novedad.categoria.id,
+                        ubicacionId,
+                      );
+                      Navigator.pop(context);
+                      context.push('/allcategoria_sub');
+                    },
+                    child: Container(
+                      width: 155.w,
+                      height: 145.h,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(imageUrl!),
+                          // fit: BoxFit.contain,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(20.r),
+                          bottomRight: Radius.circular(20.r),
+                          topLeft: Radius.circular(60.r),
+                          bottomLeft: Radius.circular(60.r),
+                        ),
+                        color: Colors.white,
                       ),
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(20.r),
-                        bottomRight: Radius.circular(20.r),
-                        topLeft: Radius.circular(60.r),
-                        bottomLeft: Radius.circular(60.r),
-                      ),
-                      color: Colors.white,
-                    ),
-                  ).animate().scale(
-                      duration: 1.seconds,
-                      begin: Offset(0.7, 0.7),
-                      end: Offset(1.0, 1.0)),
+                    ).animate().scale(
+                        duration: 1.seconds,
+                        begin: Offset(0.7, 0.7),
+                        end: Offset(1.0, 1.0)),
+                  ),
                 ],
               ),
             ),
@@ -125,7 +167,7 @@ Widget tarjetas(String titulo, String subtitulo, String chip, String imagen) {
               height: 11.h,
             ),
             Text(
-              "* Válido solo para compras mayores a S/.10",
+              "* ${novedad.terminos}",
               style: GoogleFonts.manrope(
                   fontSize: 10.sp, fontWeight: FontWeight.w400),
             )
