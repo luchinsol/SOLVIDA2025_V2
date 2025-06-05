@@ -34,7 +34,7 @@ class SubcategoriaProvider extends ChangeNotifier {
       print(".....SUBCTEGORIA ESPECIFICA zona:$zonatrabajoCliente");
       // 1 => sub / 1 => ubicacion
       var res = await http.get(Uri.parse(
-          '$microurl/all_categorias_subcategoria/${id}/${zonatrabajoCliente}'));
+          '$microurl/all_subcategoria_productos/${id}/${zonatrabajoCliente}'));
       if (res.statusCode == 200) {
         var data = jsonDecode(res.body);
         _subcategoria = SubcategoriaModel.fromJson(data);

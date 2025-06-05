@@ -102,40 +102,6 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.bold, fontSize: 50.sp))
               ])),
-              /*Container(
-                height: 20.h,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      /*...List.generate(5, (int index) {
-                    return Icon(Icons.star);
-                  }),*/
-                      RatingBar.builder(
-                        itemSize: 22.sp,
-                        initialRating: 4.5,
-                        minRating: 1,
-                        unratedColor: Colors.black,
-                        direction: Axis.horizontal,
-                        allowHalfRating: true,
-                        itemCount: 5,
-                        itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
-                        itemBuilder: (context, _) => Icon(
-                          Icons.star_rounded,
-                          color: Colors.amber,
-                        ),
-                        onRatingUpdate: (rating) {
-                          print(rating);
-                        },
-                      ),
-                      Center(
-                        child: Text(
-                          "110 Opiniones",
-                          style: GoogleFonts.manrope(fontSize: 15.sp),
-                        ),
-                      )
-                    ]),
-              ),*/
               SizedBox(
                 height: 12.sp,
               ),
@@ -161,17 +127,17 @@ class _DetalleProductoState extends State<DetalleProducto> {
                   children: [
                     Text.rich(TextSpan(children: [
                       TextSpan(
-                          text: 'S/.${productogenerico.item?.precio}/',
+                          text: 'S/.${productogenerico.item?.precio} PEN/',
                           style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
                               color: Color.fromRGBO(1, 37, 255, 1))),
-                      TextSpan(
-                          text: 'Pqte.',
+                      /* TextSpan(
+                          text: '${productogenerico.item.tipo_empaque ?? '-/-'}',
                           style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w300,
-                              color: Color.fromRGBO(1, 37, 255, 1)))
+                              color: Color.fromRGBO(1, 37, 255, 1)))*/
                     ])),
                     productogenerico.item.descuento > 0
                         ? Container(
@@ -190,7 +156,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           )
                         : SizedBox.shrink(),
                     Text(
-                      "Reg: S/.30PEN",
+                      "Reg: S/.${productogenerico.item.precio_regular} PEN",
                       style: GoogleFonts.manrope(
                         color: const Color.fromARGB(255, 136, 136, 136),
                         fontSize: 15.sp,
@@ -332,7 +298,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
-                  "eSin descripción disponibleSin descripción disponibleSin descripción disponibleSin descripción disponibleSin descripción disponibleSin descripción disponibleSin descripciónipción disponible",
+                  "${productogenerico.item.descripcion}",
                   style: GoogleFonts.manrope(
                     fontSize: 14.sp,
                     color: Colors.grey.shade700,
@@ -351,12 +317,13 @@ class _DetalleProductoState extends State<DetalleProducto> {
               ),
               Container(
                 child: Row(
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
                       //height: 24.h,
                       width: 54.w,
                       child: Text(
-                        "${productogenerico.item?.valoracion ?? 4.4}",
+                        "${productogenerico.item?.valoracion}",
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           fontSize: 34.sp,
@@ -371,7 +338,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                       children: [
                         RatingBar.builder(
                           itemSize: 22.sp,
-                          initialRating: 4.5,
+                          initialRating: productogenerico.item.valoracion,
                           minRating: 1,
                           unratedColor: Colors.black,
                           direction: Axis.horizontal,
@@ -387,7 +354,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           },
                         ),
                         Text(
-                          "110 Opiniones",
+                          "${productogenerico.item.totalclientecalificacion} Opiniones",
                           style: GoogleFonts.manrope(
                               fontSize: 15.sp, color: Colors.grey),
                         ),
@@ -418,14 +385,21 @@ class _DetalleProductoState extends State<DetalleProducto> {
                 height: 20.h,
               ),
               Container(
-                height: 300.h,
+                height: productogenerico.item.totalclientecalificacion > 1
+                    ? 200.h
+                    : 100.h,
                 //color: Colors.amber,
                 child: ListView.builder(
-                    itemCount: 15,
+                    itemCount: productogenerico.item.calificaciones.length,
                     itemBuilder: (context, index) {
+                      final productogenericoActual =
+                          productogenerico.item.calificaciones[index];
                       return Column(
                         children: [
-                          opiniones(),
+                          opiniones(
+                              productogenericoActual.nombres,
+                              productogenericoActual.apellidos,
+                              productogenericoActual.calificacion),
                           SizedBox(
                             height: 33.h,
                           ),

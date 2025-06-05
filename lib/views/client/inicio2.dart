@@ -280,8 +280,8 @@ class _Inicio2State extends State<Inicio2> {
       }
     });
 
-    // Llama una vez para obtener los eventos
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Llama una vez para obtener los eventos FUNCIONA PERO MANDA SIMEPRE LA 1ERA UBICACION PARA MOSTRAR
+    /* WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         print("....cliente ...  ubicacion");
 
@@ -298,6 +298,34 @@ class _Inicio2State extends State<Inicio2> {
           print(
               "❗ No hay ubicaciones cargadas. No se puede cargar categorías.");
           // Si es la pantalla principal, podrías redirigir o mostrar un mensaje.
+        }
+      }
+    });*/
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final ubicacionProvider =
+            Provider.of<UbicacionProvider>(context, listen: false);
+
+        if (ubicacionProvider.allubicaciones.isNotEmpty) {
+          // Intentamos obtener la ubicación seleccionada
+          final ubicacionSeleccionadaId = ubicacionProvider.idSeleccionado;
+
+          final ubicacion = ubicacionSeleccionadaId != null
+              ? ubicacionProvider.allubicaciones.firstWhere(
+                  (u) => u.id == ubicacionSeleccionadaId,
+                  orElse: () => ubicacionProvider.allubicaciones.first,
+                )
+              : ubicacionProvider.allubicaciones.first;
+
+          // Guardamos zonatrabajo_id en el provider categoria
+          Provider.of<CategoriaInicioProvider>(context, listen: false)
+              .setZonaTrabajoId(ubicacion.zonatrabajo_id);
+
+          Provider.of<CategoriaInicioProvider>(context, listen: false)
+              .getCategoriaSubcategoria(null, ubicacion.id!);
+        } else {
+          print(
+              "❗ No hay ubicaciones cargadas. No se puede cargar categorías.");
         }
       }
     });
@@ -323,8 +351,21 @@ class _Inicio2State extends State<Inicio2> {
           .verificacionUbicacionSeleccionada(ubicacionSeleccionada!);
     });*/
 
-    Future.microtask(() {
-      Provider.of<CategoriaProvider>(context, listen: false).getCategorias();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final categoriaProvider =
+          Provider.of<CategoriaProvider>(context, listen: false);
+      final categoriaInicioProvider =
+          Provider.of<CategoriaInicioProvider>(context, listen: false);
+
+      await categoriaProvider.getCategorias(); // Espera a que termine
+
+      final categorias = categoriaProvider.allcategorias;
+
+      if (categorias.isNotEmpty &&
+          categoriaInicioProvider.categoriaIdSeleccionada == null) {
+        categoriaInicioProvider.setCategoriaSeleccionada(categorias.first.id);
+      }
     });
 
     _scrollTimer = Timer.periodic(Duration(seconds: 4), (_) {
@@ -361,6 +402,7 @@ class _Inicio2State extends State<Inicio2> {
     final eventos = context.watch<EventoProvider>().todoseventos;
     // Aquí construyes tu vista
     final categorias = context.watch<CategoriaProvider>().allcategorias;
+
     final categoriaInicio =
         context.watch<CategoriaInicioProvider>().allcategoria_subcategoria;
     //String nombre
@@ -849,7 +891,8 @@ class _Inicio2State extends State<Inicio2> {
                                         borderRadius:
                                             BorderRadius.circular(20.r)),
                                     child: ElevatedButton(
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          // Luego navegas
                                           context.push('/allcategoria_sub');
                                         },
                                         child: Text(
