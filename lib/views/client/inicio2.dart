@@ -373,6 +373,7 @@ class _Inicio2State extends State<Inicio2> {
     final mitadNovedades = (totaldenovedades / 2).ceil();
     final primeraMitad =
         novedadesProvider.allnovedades!.take(mitadNovedades).toList();
+    final tempProvider = context.watch<TemperaturaProvider>();
     final segundaMitad =
         novedadesProvider.allnovedades!.skip(mitadNovedades).toList();
 
@@ -710,7 +711,7 @@ class _Inicio2State extends State<Inicio2> {
                                     padding: EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       color: const Color.fromARGB(
-                                          255, 216, 186, 125),
+                                          255, 61, 47, 250),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Column(
@@ -719,12 +720,13 @@ class _Inicio2State extends State<Inicio2> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Text('21°C',
+                                        Text(
+                                            '${tempProvider.temptoday?.temperatura}',
                                             style: GoogleFonts.manrope(
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 40,
                                                 color: Colors.white)),
-                                        Text('¡Qué calor!',
+                                        Text('Recuerda',
                                             style: GoogleFonts.manrope(
                                                 fontSize: 20.sp,
                                                 color: Colors.white)),

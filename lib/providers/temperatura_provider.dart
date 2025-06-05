@@ -9,19 +9,20 @@ class TemperaturaProvider extends ChangeNotifier {
   //ATRIBUTOS
   TemperaturaModel? _temperatura;
   TemperaturaModel? get temptoday => _temperatura;
-  String tempApi = dotenv.env['API_OPENWEATHER'] ?? '';
-  String keytemp = dotenv.env['API_KEYWEATHER'] ?? '';
-  String ciudad = "Arequipa";
+  String microUrl = dotenv.env['MICRO_URL'] ?? '';
   //MÉTODOS
   Future<void> getTemperatura() async {
     try {
-      var res = await http.get(Uri.parse('${tempApi}q=$ciudad&appid=$keytemp'));
+      print("...dentro de temeparautra ");
+      var res =
+          await http.get(Uri.parse('$microUrl/temperatura?city=Arequipa'));
       if (res.statusCode == 200) {
+        print("entre");
         var data = jsonDecode(res.body);
         print("..........data temp");
         print(data);
-        //_temperatura = TemperaturaModel.fromJson(data);
-        // print("temperatura $_temperatura");
+        _temperatura = TemperaturaModel.fromJson(data);
+        print("temperatura $_temperatura");
         notifyListeners();
       }
     } catch (e) {

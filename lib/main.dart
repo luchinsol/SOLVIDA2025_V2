@@ -4,10 +4,12 @@ import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/cupon_provider.dart';
+import 'package:app2025v2/providers/delivery_provider.dart';
 import 'package:app2025v2/providers/detalleproducto_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
 import 'package:app2025v2/providers/iniciarapp_provider.dart';
 import 'package:app2025v2/providers/novedades_provider.dart';
+import 'package:app2025v2/providers/pedido_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
@@ -65,7 +67,9 @@ Future<void> main() async {
       ChangeNotifierProvider(create: (context) => DetalleProductoProvider()),
       ChangeNotifierProvider(create: (context) => UbicacionProvider()),
       ChangeNotifierProvider(create: (context) => CuponProvider()),
-      ChangeNotifierProvider(create: (context) => NovedadesProvider())
+      ChangeNotifierProvider(create: (context) => NovedadesProvider()),
+      ChangeNotifierProvider(create: (context) => DeliveryProvider()),
+      ChangeNotifierProvider(create: (context) => PedidoProvider()),
     ],
     child: const MyApp(),
   ));

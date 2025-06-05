@@ -12,7 +12,10 @@ class CarritoProvider extends ChangeNotifier {
   List<ProductoModel> _productoN = [];
   List<PromocionModel> _promociones = [];
   List<dynamic> get itemsCombinados => [..._productoN, ..._promociones];
-
+  List<DetallePedido> _detallesPedido = [];
+  List<DetallePedido> get detallesPedido => _detallesPedido;
+  int idProductotemp = 0;
+  int idPromotemp = 0;
   double sumatotalPedido = 0;
   String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
@@ -21,6 +24,10 @@ class CarritoProvider extends ChangeNotifier {
       final yaExiste = _productoN.any((p) => p.id == producto.id);
       if (!yaExiste) {
         _productoN.add(producto);
+        _detallesPedido.add(DetallePedido(
+            productoId: producto.id!,
+            cantidad: producto.cantidad,
+            promocionId: null));
         print("---PRODUCTO AGREGADO---");
       } else {
         print("---PRODUCTO YA EXISTE, NO SE AGREGA---");
@@ -29,6 +36,12 @@ class CarritoProvider extends ChangeNotifier {
       final yaExiste = _promociones.any((p) => p.id == producto.id);
       if (!yaExiste) {
         _promociones.add(producto);
+        _detallesPedido.add(DetallePedido(
+            productoId:
+                null, // NECESITO QUE BUSQUES EN EL BACKEND POR LA PROMO ID
+            cantidad: producto.cantidad,
+            promocionId: producto.id));
+
         print("---PROMOCIÓN AGREGADA---");
       } else {
         print("---PROMOCIÓN YA EXISTE, NO SE AGREGA---");
