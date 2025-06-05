@@ -18,18 +18,49 @@ class Completacategoria extends StatefulWidget {
 }
 
 class _CompletacategoriaState extends State<Completacategoria> {
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
+
+    // Llama una vez para obtener los eventos
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final categoriaProvider =
+          Provider.of<CategoriaInicioProvider>(context, listen: false);
+
+      final zonatrabajoid = categoriaProvider.zonaTrabajoId;
+      final categoriaiD = categoriaProvider.categoriaIdSeleccionada;
+
+      if (categoriaiD != null && zonatrabajoid != null) {
+        await categoriaProvider.getCategoriaCompleta(
+            categoriaiD, zonatrabajoid);
+      }
+
+      // Espera 500ms antes de mostrar el contenido final
+      await Future.delayed(Duration(milliseconds: 500));
+
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final categoriaInicio =
-        context.watch<CategoriaInicioProvider>().allcategoria_subcategoria;
+        context.watch<CategoriaInicioProvider>().todolacategoriacompleta;
     final ubicacionProvider = context.watch<UbicacionProvider>();
     final carritoProvider = context.watch<CarritoProvider>();
-
+    // Mostrar loader si isLoading o datos aún no llegaron
+    if (isLoading || categoriaInicio == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -91,6 +122,9 @@ class _CompletacategoriaState extends State<Completacategoria> {
                             style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                             ),
+                          ),
+                          SizedBox(
+                            width: 10.w,
                           ),
                           Container(
                             width: 30.w,

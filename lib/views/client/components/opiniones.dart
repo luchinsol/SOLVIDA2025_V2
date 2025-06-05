@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Widget opiniones() {
+Widget opiniones(String nombres, String apellidos, double calificacion) {
   return Container(
     height: 45.w,
     color: Colors.grey.shade50,
@@ -24,14 +24,14 @@ Widget opiniones() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Margarita Alvarez",
+              "${nombres}",
               style: GoogleFonts.manrope(
                   fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             Row(
               children: [
                 Text(
-                  '4.5',
+                  '${calificacion}',
                   style: GoogleFonts.manrope(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w300,

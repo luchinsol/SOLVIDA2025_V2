@@ -40,9 +40,13 @@ Widget categoria(BuildContext context, dynamic item) {
             );
 
             try {
+              final categoriaProvider =
+                  Provider.of<CategoriaInicioProvider>(context, listen: false);
+              categoriaProvider.setCategoriaSeleccionada(item.id);
+
               // Esperar a que cargue la categoría
-              await Provider.of<CategoriaInicioProvider>(context, listen: false)
-                  .getCategoriaSubcategoria(item.id, ubicacion.id!);
+              await categoriaProvider.getCategoriaSubcategoria(
+                  item.id, ubicacion.id!);
             } catch (e) {
               print("Error cargando categoría: $e");
             } finally {

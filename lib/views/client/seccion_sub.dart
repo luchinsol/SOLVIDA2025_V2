@@ -68,7 +68,8 @@ class _SubCategoriaState extends State<SubCategoria> {
                 decoration: BoxDecoration(
                     //color: Colors.amber,
                     image: DecorationImage(
-                        image: NetworkImage(seccionSub!.icono ?? '-'))),
+                        image: NetworkImage(seccionSub?.icono ??
+                            'https://via.placeholder.com/150'))),
               ),
               SizedBox(
                 width: 1.sw - 290.0.w,
