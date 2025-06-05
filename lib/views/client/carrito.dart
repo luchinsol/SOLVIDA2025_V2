@@ -1,9 +1,13 @@
+import 'package:app2025v2/models/pedido_model.dart';
 import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/cupon_provider.dart';
+import 'package:app2025v2/providers/delivery_provider.dart';
+import 'package:app2025v2/providers/pedido_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:app2025v2/views/client/components/cupontarjeta.dart';
 import 'package:app2025v2/views/client/components/items.dart';
@@ -88,11 +92,37 @@ class _CarritoState extends State<Carrito> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<DeliveryProvider>(context, listen: false).getDeliverys();
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final deliveryProvider = context.read<DeliveryProvider>();
+
+        if (deliveryProvider.alldelivery != null &&
+            deliveryProvider.alldelivery!.isNotEmpty) {
+          setState(() {
+            _selectedDeliveryIndex = 0; // index 0, no el id
+          });
+        }
+      }
+    });
+  }
+
   //int contador = 1;
   String tipopago = "-";
+  String tipoDelivery = "-";
   bool codigoValido = false;
   final TextEditingController _controllerCodigo = TextEditingController();
   bool _seleccionado = false;
+  bool _seleccionarDelivery = false;
+  int? _selectedDeliveryIndex;
+
   @override
   Widget build(BuildContext context) {
     final cuponProvider = context.watch<CuponProvider>();
@@ -103,8 +133,11 @@ class _CarritoState extends State<Carrito> {
         categoriaProvider.allcategoria_subcategoria?.subcategorias[0];
 
     final ubicacionProvider = context.watch<UbicacionProvider>();
+    final deliveryProvider = context.watch<DeliveryProvider>();
 
     UbicacionModel? direccionSeleccionada;
+
+    final clienteProvider = context.watch<ClienteProvider>();
 
     if (ubicacionProvider.allubicaciones.isNotEmpty) {
       direccionSeleccionada = ubicacionProvider.allubicaciones.firstWhere(
@@ -271,6 +304,7 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 18.h,
                           ),
+                          // COMPLEMENTO DE PEDIDOS
                           Container(
                             height: 220,
                             //color: Colors.grey,
@@ -295,6 +329,55 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 18.h,
                           ),
+
+                          // CÓDIGO OCASIONAL DE DESCUENTO
+
+                          Text(
+                            "Código de descuento",
+                            style: GoogleFonts.manrope(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurpleAccent),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                width: 1.sw - 150.w,
+                                height: 30.h,
+                                child: Form(
+                                    child: TextFormField(
+                                  decoration: InputDecoration(
+                                      hintText: 'Ingresa un código válido',
+                                      hintStyle: GoogleFonts.manrope(
+                                        fontSize: 15.sp,
+                                      )),
+                                )),
+                              ),
+                              TextButton(
+                                  onPressed: () async {
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (BuildContext context) {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                    await Future.delayed(Duration(seconds: 4));
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("Aplicar"))
+                            ],
+                          ),
+                          SizedBox(
+                            height: 20.h,
+                          ),
+
+                          // CUPON CARGADO
                           if (cuponProvider.cargarCupon != null) ...[
                             // METODO DE PAGO
 
@@ -309,7 +392,10 @@ class _CarritoState extends State<Carrito> {
                                 ),
                                 TextButton(
                                     onPressed: () {
-                                      cuponProvider.limpiarCupon();
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        cuponProvider.limpiarCupon();
+                                      });
                                     },
                                     child: Text("Quitar cupón",
                                         style: GoogleFonts.manrope(
@@ -330,6 +416,130 @@ class _CarritoState extends State<Carrito> {
                             ),
                           ],
 
+                          // TIPO DE DELIVERY
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Delivery",
+                                style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.sp),
+                              ),
+                              Text(
+                                "Estimado: 55 min - 65 min",
+                                style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14.sp,
+                                    color: Color.fromRGBO(1, 37, 255, 1)),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 18.h,
+                          ),
+                          Container(
+                            height: deliveryProvider.alldelivery!.length > 1
+                                ? 150.h
+                                : 78.h,
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20.r),
+                              //  color: const Color.fromARGB(255, 221, 252, 233),
+                            ),
+                            child: ListView.builder(
+                                //scrollDirection: Axis.horizontal,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: deliveryProvider.alldelivery?.length,
+                                itemBuilder: (context, index) {
+                                  return Column(
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Container(
+                                        height: 50.h,
+                                        width: 1.sw,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20.r),
+                                            border: Border.all(
+                                                color: Color.fromRGBO(
+                                                    42, 116, 20, 1))),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    "${deliveryProvider.alldelivery?[index].nombre}",
+                                                    style: GoogleFonts.manrope(
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 20.w,
+                                                  ),
+                                                  Text(
+                                                    "S/.${deliveryProvider.alldelivery?[index].precio}",
+                                                    style: GoogleFonts.manrope(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ],
+                                              ),
+                                              Checkbox(
+                                                  value:
+                                                      _selectedDeliveryIndex ==
+                                                          index,
+                                                  checkColor: Colors
+                                                      .white, // color del ícono de check (✔)
+                                                  fillColor: WidgetStateProperty
+                                                      .resolveWith<Color>(
+                                                    (Set<WidgetState> states) {
+                                                      if (states.contains(
+                                                          WidgetState
+                                                              .selected)) {
+                                                        return Colors
+                                                            .amber; // color cuando está seleccionado
+                                                      }
+                                                      return Colors.grey
+                                                          .shade50; // color cuando está desactivado
+                                                    },
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50.r)),
+                                                  onChanged: (bool? value) {
+                                                    setState(() {
+                                                      if (value == true) {
+                                                        _selectedDeliveryIndex =
+                                                            index;
+                                                      } else {
+                                                        _selectedDeliveryIndex =
+                                                            null;
+                                                      }
+                                                    });
+                                                  })
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                    ],
+                                  );
+                                }),
+                          ),
+
+                          SizedBox(
+                            height: 18.h,
+                          ),
                           // METODO DE PAGO
                           Text(
                             "Método de pago",
@@ -339,48 +549,9 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 18.h,
                           ),
-                          /*  Container(
-                        height: 70.h,
-                        //color: Colors.yellowAccent,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 3,
-                          itemBuilder: (context, index) {
-                            return Row(
-                              children: [
-                                Container(
-                                  width: 95.w,
-                                  height: 65.h,
-                                  child: ElevatedButton(
-                                      onPressed: () async {},
-                                      style: ElevatedButton.styleFrom(
-                                          side: BorderSide(
-                                              width: 2,
-                                              color:
-                                                  Color.fromRGBO(1, 37, 255, 1)),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15.r))),
-                                      child: Center(
-                                        child: Text(
-                                          "Efectivo S/.",
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.manrope(
-                                              fontSize: 11.5.sp,
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  Color.fromRGBO(1, 37, 255, 1)),
-                                        ),
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: 26.w,
-                                )
-                              ],
-                            );
-                          },
-                        ),
-                      ),*/
+
+                          // MÉTODO DE PAGO
+
                           Container(
                             height: 70.h,
                             width: 1.sw,
@@ -445,6 +616,8 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 18.h,
                           ),
+
+                          // RESUMEN DE PEDIDO
                           Container(
                             width: 359.w,
                             height: 200.h,
@@ -502,16 +675,29 @@ class _CarritoState extends State<Carrito> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Delivery",
+                                        (deliveryProvider.alldelivery != null &&
+                                                deliveryProvider
+                                                    .alldelivery!.isNotEmpty &&
+                                                _selectedDeliveryIndex !=
+                                                    null &&
+                                                _selectedDeliveryIndex! <
+                                                    deliveryProvider
+                                                        .alldelivery!.length)
+                                            ? "Delivery - ${deliveryProvider.alldelivery?[_selectedDeliveryIndex!].nombre}"
+                                            : "Delivery - /",
                                         style: GoogleFonts.manrope(
                                             fontSize: 15.sp,
-                                            fontWeight: FontWeight.normal),
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.green),
                                       ),
                                       Text(
-                                        "S/.0.00",
+                                        _selectedDeliveryIndex != null
+                                            ? "S/.${deliveryProvider.alldelivery?[_selectedDeliveryIndex!].precio.toStringAsFixed(2)}"
+                                            : "S/.0.00",
                                         style: GoogleFonts.manrope(
-                                            fontSize: 15.sp,
-                                            fontWeight: FontWeight.w500),
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       )
                                     ],
                                   ),
@@ -527,7 +713,7 @@ class _CarritoState extends State<Carrito> {
                                                 fontSize: 15.sp,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          if (codigoValido) ...[
+                                          if (3 > 1) ...[
                                             SizedBox(
                                               width: 5,
                                             ),
@@ -564,6 +750,28 @@ class _CarritoState extends State<Carrito> {
                                       )
                                     ],
                                   ),
+                                  cuponProvider.estaCargado
+                                      ? Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Cupón de decuento",
+                                              style: GoogleFonts.manrope(
+                                                  fontSize: 15.sp,
+                                                  fontWeight:
+                                                      FontWeight.normal),
+                                            ),
+                                            Text(
+                                              "-%${cuponProvider.cargarCupon?.porcentaje} ",
+                                              style: GoogleFonts.manrope(
+                                                  fontSize: 15.sp,
+                                                  fontWeight:
+                                                      FontWeight.normal),
+                                            ),
+                                          ],
+                                        )
+                                      : SizedBox.shrink(),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -575,7 +783,16 @@ class _CarritoState extends State<Carrito> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        "S/.${carritProvider.sumatotalPedido.toStringAsFixed(2)}",
+                                        (deliveryProvider.alldelivery != null &&
+                                                deliveryProvider
+                                                    .alldelivery!.isNotEmpty &&
+                                                _selectedDeliveryIndex !=
+                                                    null &&
+                                                _selectedDeliveryIndex! <
+                                                    deliveryProvider
+                                                        .alldelivery!.length)
+                                            ? "S/.${carritProvider.sumatotalPedido + (deliveryProvider.alldelivery![_selectedDeliveryIndex!].precio)}"
+                                            : "-",
                                         style: GoogleFonts.manrope(
                                             fontSize: 15.sp,
                                             fontWeight: FontWeight.bold),
@@ -589,6 +806,8 @@ class _CarritoState extends State<Carrito> {
                           SizedBox(
                             height: 17.h,
                           ),
+
+                          // CANCELAR PEDIDO
                           Container(
                               width: 1.sw,
                               height: 56.h,
@@ -703,11 +922,58 @@ class _CarritoState extends State<Carrito> {
                                       ),
                                       backgroundColor:
                                           Color.fromRGBO(1, 37, 255, 1)),
-                                  onPressed: _seleccionado // metodo de pago
-                                      ? () {
-                                          carritProvider.deleteCarrito();
+                                  onPressed: (_seleccionado &&
+                                          _selectedDeliveryIndex != null)
+                                      // metodo de pago
+                                      ? () async {
+                                          print("detalles ");
+                                          print(
+                                              "${carritProvider.detallesPedido}");
 
-                                          context.go('/fin_pedido');
+                                          List<Map<String, dynamic>> detalles =
+                                              carritProvider.detallesPedido
+                                                  .map((detalle) =>
+                                                      detalle.toJson())
+                                                  .toList();
+
+                                          for (var i = 0;
+                                              i <
+                                                  carritProvider
+                                                      .detallesPedido.length;
+                                              i++) {
+                                            print(
+                                                "${carritProvider.detallesPedido[i].productoId}");
+                                          }
+
+                                          final cliente = clienteProvider
+                                              .clienteActual?.cliente.id;
+                                          await Provider.of<PedidoProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .postPedido(
+                                                  clienteId: cliente,
+                                                  fecha: "2025-05-28T14:30:00",
+                                                  estado: "pendiente",
+                                                  observacion: "observacion",
+                                                  tipoPago: "${tipopago}",
+                                                  ubicacionId:
+                                                      direccionSeleccionada?.id,
+                                                  deliveryId: deliveryProvider
+                                                      .alldelivery![
+                                                          _selectedDeliveryIndex!]
+                                                      .id,
+                                                  //codigoId: null,
+                                                  total: carritProvider
+                                                          .sumatotalPedido +
+                                                      (deliveryProvider
+                                                          .alldelivery![
+                                                              _selectedDeliveryIndex!]
+                                                          .precio),
+                                                  detalles: detalles);
+                                          //print(object)
+                                          //  carritProvider.deleteCarrito();
+
+                                          // context.go('/fin_pedido');
                                         }
                                       : null,
                                   child: Text(

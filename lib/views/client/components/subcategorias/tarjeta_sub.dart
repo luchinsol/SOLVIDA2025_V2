@@ -109,7 +109,7 @@ Widget tarjeta_sub(
                   child: Column(
                     children: [
                       Text(
-                        "${item.nombre} 700ml",
+                        "${item.nombre} ${item.valoracion}",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
                             fontSize: 14.sp, fontWeight: FontWeight.bold),

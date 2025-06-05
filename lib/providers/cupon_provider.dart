@@ -15,6 +15,7 @@ class CuponProvider extends ChangeNotifier {
   CuponModel? get cargarCupon => _cuponCargado;
   bool _cargado = false;
   bool get yacargo => _cargado;
+  bool get estaCargado => _cuponCargado != null;
 
   // MÉTODOS
   Future<void> getallcupones() async {
@@ -41,15 +42,6 @@ class CuponProvider extends ChangeNotifier {
   void limpiarCupon() {
     _cuponCargado = null;
     _cargado = false;
-    notifyListeners();
-  }
-
-  void estaCargado() {
-    if (_cuponCargado != null) {
-      _cargado = true;
-    } else {
-      _cargado = false;
-    }
     notifyListeners();
   }
 }

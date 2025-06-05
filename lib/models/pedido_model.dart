@@ -41,7 +41,7 @@ class PedidoModel {
 }
 
 class DetallePedido {
-  final int productoId;
+  final int? productoId;
   final int cantidad;
   final int? promocionId;
 
