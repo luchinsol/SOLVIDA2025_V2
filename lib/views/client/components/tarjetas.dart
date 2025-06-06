@@ -1,3 +1,4 @@
+import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
@@ -115,6 +116,8 @@ Widget tarjetas(dynamic novedad, BuildContext context) {
                   GestureDetector(
                     onTap: () async {
                       print("....entradon prodcuto");
+                      print(
+                          "....click en categoria ${novedad.categoria.id} ${novedad.categoria.nombre}");
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -127,15 +130,32 @@ Widget tarjetas(dynamic novedad, BuildContext context) {
                         },
                       );
 
-                      final ubicacionId =
-                          context.read<UbicacionProvider>().idSeleccionado!;
-                      final categoriaInicioProvider =
-                          context.read<CategoriaInicioProvider>();
+                      final ubicacionProvider =
+                          context.read<UbicacionProvider>();
 
-                      await categoriaInicioProvider.getCategoriaSubcategoria(
-                        novedad.categoria.id,
-                        ubicacionId,
-                      );
+                      final idSeleccionado = ubicacionProvider.idSeleccionado;
+
+// Buscar el zonaTrabajoId de esa ubicación
+                      UbicacionModel? ubicacionSeleccionada;
+                      try {
+                        ubicacionSeleccionada =
+                            ubicacionProvider.allubicaciones.firstWhere(
+                          (u) => u.id == idSeleccionado,
+                        );
+                      } catch (e) {
+                        ubicacionSeleccionada = null;
+                      }
+
+                      final zonaTrabajoId =
+                          ubicacionSeleccionada?.zonatrabajo_id;
+
+                      final categoria = Provider.of<CategoriaInicioProvider>(
+                          context,
+                          listen: false);
+
+                      categoria.setCategoriaSeleccionada(novedad.categoria.id);
+                      categoria.setZonaTrabajoId(zonaTrabajoId);
+
                       Navigator.pop(context);
                       context.push('/allcategoria_sub');
                     },

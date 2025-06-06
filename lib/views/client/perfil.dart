@@ -197,8 +197,6 @@ class _PerfilState extends State<Perfil> {
                           );
                           await FirebaseAuth.instance.signOut();
 
-                          Navigator.of(context).pop();
-
                           final prefs = await SharedPreferences.getInstance();
 
                           // Limpia el número de teléfono u otros datos personalizados
@@ -206,6 +204,7 @@ class _PerfilState extends State<Perfil> {
                           clienteProvider.limpiarCliente();
                           Provider.of<UbicacionProvider>(context, listen: false)
                               .limpiarUbicaciones();
+                          Navigator.of(context).pop();
                           context.go('/');
                         },
                         child: Text(

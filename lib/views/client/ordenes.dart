@@ -1,10 +1,14 @@
 import 'dart:math';
 
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/pedido_provider.dart';
+import 'package:app2025v2/providers/temperatura_provider.dart';
 import 'package:app2025v2/views/client/components/pedidos/pedido.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class Ordenes extends StatefulWidget {
   const Ordenes({Key? key}) : super(key: key);
@@ -15,24 +19,26 @@ class Ordenes extends StatefulWidget {
 
 class _OrdenesState extends State<Ordenes> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final cliente =
+            Provider.of<ClienteProvider>(context, listen: false).clienteActual;
+        final id = cliente?.cliente.id;
+        Provider.of<PedidoProvider>(context, listen: false)
+            .fetchHistorialPedidos(id!);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final historialfinal = context.watch<PedidoProvider>();
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          /*leading: Container(
-              margin: EdgeInsets.only(left: 20.r),
-              width: 30.w,
-              height: 10.w,
-              decoration: BoxDecoration(
-                  //color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(50.r)),
-              child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    size: 13.sp,
-                  ))),*/
           title: Text(
             'Pedidos',
             style: GoogleFonts.manrope(fontSize: 16.sp),
@@ -47,33 +53,6 @@ class _OrdenesState extends State<Ordenes> {
                       "Hoy - 02/10/2025",
                       style: GoogleFonts.manrope(fontSize: 14.sp),
                     ),
-                    /*Row(
-                children: [
-                  Expanded(
-                    child: Divider(
-                      color: Colors.black,
-                      indent: sqrt1_2,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 20.w,
-                  ),
-                  Container(
-                      child: Text(
-                    "Hoy",
-                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
-                  )),
-                  SizedBox(
-                    width: 20.w,
-                  ),
-                  Expanded(
-                    child: Divider(
-                      color: Colors.black,
-                      indent: sqrt1_2,
-                    ),
-                  )
-                ],
-              ),*/
                     SizedBox(
                       height: 30.h,
                     ),
@@ -81,9 +60,11 @@ class _OrdenesState extends State<Ordenes> {
                         //color: Colors.amber,
                         height: 1.sh - 250.h,
                         child: ListView.builder(
-                          itemCount: 5,
+                          itemCount: historialfinal.allhistorial?.length,
                           itemBuilder: (context, index) {
-                            return pedido(context);
+                            final pedidohistorial =
+                                historialfinal.allhistorial?[index];
+                            return pedido(context, pedidohistorial);
                           },
                         )),
                   ],

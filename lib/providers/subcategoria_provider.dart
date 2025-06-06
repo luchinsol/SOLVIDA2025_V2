@@ -13,26 +13,12 @@ class SubcategoriaProvider extends ChangeNotifier {
   SubcategoriaModel? get allproductossubcategoria => _subcategoria;
   String microurl = dotenv.env['MICRO_URL'] ?? '';
 
-/*  List<GenericoModel> get allItemsGenerico {
-    if (_subcategoria == null) return [];
-    return [
-      ..._subcategoria!.productos.map((p) => GenericoModel.fromProducto(p)),
-      ..._subcategoria!.promociones.map((p) => GenericoModel.fromPromocion(p)),
-    ];
-  }
-
-  List<GenericoModel> get itemsFiltrados {
-    if (_filtro == 'Todos') return allItemsGenerico;
-    return allItemsGenerico
-        .where((item) => item.tipo.toLowerCase() == _filtro.toLowerCase())
-        .toList();
-  }*/
-
   // MÉTODO DE SUBCATEGORIA ESPECIFICA SUB_ID, ZONA_ID
   Future<void> getSubcategoria(int id, int? zonatrabajoCliente) async {
     try {
       print(".....SUBCTEGORIA ESPECIFICA zona:$zonatrabajoCliente");
       // 1 => sub / 1 => ubicacion
+      print('$microurl/all_subcategoria_productos/${id}/${zonatrabajoCliente}');
       var res = await http.get(Uri.parse(
           '$microurl/all_subcategoria_productos/${id}/${zonatrabajoCliente}'));
       if (res.statusCode == 200) {

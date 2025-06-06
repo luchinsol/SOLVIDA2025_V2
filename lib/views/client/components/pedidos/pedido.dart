@@ -1,10 +1,12 @@
 import 'dart:math';
 
+import 'package:app2025v2/providers/pedido_provider.dart';
 import 'package:app2025v2/views/client/components/pedidos/timeline.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 final estados = [
   {'label': 'Pendiente', 'icon': Icons.hourglass_empty, 'color': Colors.grey},
@@ -12,7 +14,8 @@ final estados = [
   {'label': 'Entregado', 'icon': Icons.check_circle, 'color': Colors.green},
 ];
 
-Widget pedido(BuildContext context) {
+Widget pedido(BuildContext context, dynamic item) {
+  final historial = context.watch<PedidoProvider>();
   return Column(
     children: [
       Container(
@@ -29,7 +32,7 @@ Widget pedido(BuildContext context) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Pedido N°1234567",
+                    "Pedido N°${item.id}",
                     style: GoogleFonts.manrope(
                       fontWeight: FontWeight.bold,
                       fontSize: 14.sp,
@@ -41,7 +44,7 @@ Widget pedido(BuildContext context) {
                     child: Chip(
                       // shadowColor: Colors.amber,
                       label: Text(
-                        "pendiente",
+                        "${item.estado}",
                         style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold,
                             fontSize: 14.sp,
@@ -67,7 +70,7 @@ Widget pedido(BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Fecha: 24/05",
+                        "F-H: ${item.fecha}",
                         style: GoogleFonts.manrope(fontSize: 14.sp),
                       ),
                     ],
@@ -96,7 +99,7 @@ Widget pedido(BuildContext context) {
                     //color: Colors.green,
                     width: 280.5.w,
                     child: Text(
-                      "Los Aálamos -Socabaya - Mz 3 - Av . Siempre viva",
+                      "${item.direccion}",
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
                           fontSize: 14.sp, color: Colors.grey.shade600),
@@ -129,27 +132,31 @@ Widget pedido(BuildContext context) {
                       Container(
                         height: 50.w,
                         width: 145.w,
-                        //color: Colors.amber,
+                        // color: Colors.amber,
                         child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: 10,
+                            itemCount: item.fotos.length,
                             itemBuilder: (context, index) {
+                              final fotoactual = item.fotos[index];
+                              print(
+                                  "Pedido ${item.id} tiene ${item.fotos.length} fotos: ${item.fotos}");
+
+                              print(" ->>> cnatidad fotos${item.fotos.length}");
                               return Container(
                                 height: 50.w,
                                 width: 50.w,
                                 decoration: BoxDecoration(
                                     color: const Color.fromARGB(
-                                        255, 233, 233, 233),
+                                        255, 185, 185, 185),
                                     borderRadius: BorderRadius.circular(50.r),
                                     image: DecorationImage(
                                         fit: BoxFit.cover,
-                                        image: AssetImage(
-                                            'lib/assets/imagenes/bodegon.png'))),
+                                        image: NetworkImage(fotoactual))),
                               );
                             }),
                       ),
                       Text(
-                        "S/.999.0",
+                        "S/.${item.total}",
                         style: GoogleFonts.manrope(
                             fontWeight: FontWeight.w500, fontSize: 20.sp),
                       )
@@ -161,7 +168,9 @@ Widget pedido(BuildContext context) {
             SizedBox(
               height: 30,
             ),
+
             // TIMELINE ESTADO PEDIDO
+
             Container(
               padding: EdgeInsets.only(left: 0.r, right: 0.r),
               width: 360.w,

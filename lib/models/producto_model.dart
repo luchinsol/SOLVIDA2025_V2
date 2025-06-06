@@ -12,11 +12,11 @@ class ProductoModel {
   String tipo_empaque;
   String descripcion;
   EstiloModel estilo;
-  int totalclientecalificacion;
+  int? totalclientecalificacion;
   String unidad_medidad;
-  int cantidad_unidad;
+  int? cantidad_unidad;
   int cantidad = 1;
-  int volumen_unidad;
+  int? volumen_unidad;
   List<CalificacionesModel> calificaciones;
 
   //CONSTRUCTOR

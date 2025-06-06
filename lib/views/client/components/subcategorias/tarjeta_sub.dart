@@ -115,7 +115,16 @@ Widget tarjeta_sub(
                             fontSize: 14.sp, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        "15 Und / Pqte",
+                        item is ProductoModel
+                            ? "${item.cantidad_unidad}und./ ${item.tipo_empaque}"
+                            : "Promo",
+                        style: GoogleFonts.manrope(
+                            fontSize: 14.sp, fontWeight: FontWeight.w300),
+                      ),
+                      Text(
+                        item is ProductoModel
+                            ? "${item.volumen_unidad} ${item.unidad_medidad}"
+                            : "",
                         style: GoogleFonts.manrope(
                             fontSize: 14.sp, fontWeight: FontWeight.w300),
                       ),
@@ -123,20 +132,6 @@ Widget tarjeta_sub(
                   ),
                 ),
 
-                /* Row(
-                  children: [
-                    Text(
-                      "${item.valoracion}",
-                      style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.w400, fontSize: 12.sp),
-                    ),
-                    Icon(
-                      Icons.star_rounded,
-                      size: 16.sp,
-                      color: Colors.amber,
-                    )
-                  ],
-                ),*/
                 SizedBox(height: 8.h),
                 Container(
                   height: 24.h,
