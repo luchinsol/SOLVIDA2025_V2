@@ -1,3 +1,4 @@
+import 'package:app2025v2/providers/notificacion_provider.dart';
 import 'package:app2025v2/views/client/cupones.dart';
 
 import 'package:app2025v2/views/client/inicio2.dart';
@@ -12,6 +13,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:provider/provider.dart';
 
 class BarraNavegacion extends StatefulWidget {
   const BarraNavegacion({Key? key}) : super(key: key);
@@ -33,6 +35,11 @@ class _BarraNavegacionState extends State<BarraNavegacion> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -40,11 +47,15 @@ class _BarraNavegacionState extends State<BarraNavegacion> {
 
   @override
   Widget build(BuildContext context) {
+    final notificacion = context.watch<NotificacionProvider>();
+
     return Scaffold(
       bottomNavigationBar: ConvexAppBar.badge(
-        {
-          3: '9',
-        },
+        notificacion.yaLeido
+            ? {} // Si ya fue leído, no se muestra el badge
+            : {
+                3: '${notificacion.allnotifycliente?.length ?? 0}',
+              },
         style: TabStyle.reactCircle,
         //  curveSize: 2.0,
         badgeMargin: EdgeInsets.only(bottom: 18, left: 20),

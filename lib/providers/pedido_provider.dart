@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app2025v2/models/historial_model.dart';
 import 'package:app2025v2/models/pedido_model.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,6 +11,9 @@ class PedidoProvider extends ChangeNotifier {
   PedidoModel? get allpedidos => _pedido;
   List<PedidoModel>? _pedidoshoy = [];
   List<PedidoModel>? get allpedidoshoy => _pedidoshoy;
+
+  List<HistorialModel>? _historial = [];
+  List<HistorialModel>? get allhistorial => _historial;
 
   String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
@@ -60,6 +64,31 @@ class PedidoProvider extends ChangeNotifier {
       }
     } catch (e) {
       print("Error en la petición $e");
+    }
+  }
+
+  Future<void> fetchHistorialPedidos(int clienteId) async {
+    try {
+      print("...$clienteId");
+      final clinetID = 4;
+      final url = Uri.parse("$microUrl/pedido_history_cliente/${clinetID}");
+      final res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        var data = jsonDecode(res.body);
+        print(".......HISTORIAL");
+        print(data);
+        _historial =
+            (data as List).map((e) => HistorialModel.fromJson(e)).toList();
+        /* final List<dynamic> data = jsonDecode(res.body);
+        _historialPedidos =
+            data.map((pedido) => PedidoHistoryModel.fromJson(pedido)).toList();*/
+        notifyListeners();
+      } else {
+        print("Error al obtener historial: ${res.body}");
+      }
+    } catch (e) {
+      print("Error en la petición: $e");
     }
   }
 }

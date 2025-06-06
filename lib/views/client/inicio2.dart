@@ -7,6 +7,7 @@ import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
 import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/evento_provider.dart';
+import 'package:app2025v2/providers/notificacion_provider.dart';
 import 'package:app2025v2/providers/novedades_provider.dart';
 import 'package:app2025v2/providers/subcategoria_provider.dart';
 import 'package:app2025v2/providers/temperatura_provider.dart';
@@ -335,6 +336,13 @@ class _Inicio2State extends State<Inicio2> {
       if (mounted) {
         Provider.of<TemperaturaProvider>(context, listen: false)
             .getTemperatura();
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<NotificacionProvider>(context, listen: false)
+            .cargarEstadoLeido();
       }
     });
 

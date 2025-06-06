@@ -75,6 +75,7 @@ class CategoriaInicioProvider extends ChangeNotifier {
       /// ESTE ENDPOINT TRAE LA TRIPA COMPLETA
 
       if (res.statusCode == 200) {
+        print("..llega la tripa");
         var data = jsonDecode(res.body);
         _categoriaCompleta = CategoriaSubcategoriaModel.fromJson(data);
         notifyListeners();
