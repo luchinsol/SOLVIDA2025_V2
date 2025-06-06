@@ -29,6 +29,7 @@ class SubcategoriaProvider extends ChangeNotifier {
         print("${_subcategoria?.nombre}");
         notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       print("$e");
     }

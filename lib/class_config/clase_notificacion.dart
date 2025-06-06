@@ -125,12 +125,14 @@ class NotificationsService {
   }
 
   // Detalles de la notificación con acciones
-  NotificationDetails notificationDetailsWithActions({required String body}) {
+  NotificationDetails notificationDetailsWithActions(
+      {required String title, required String body}) {
     final bigTextStyle = BigTextStyleInformation(
-      body, // Texto largo que aparecerá al expandir la notificación
-      contentTitle: '🛍️ ¡Oferta Exclusiva Hoy!', // Título visible al expandir
-      //   summaryText: '🔥 Descuentos increíbles disponibles', // Línea inferior
-    );
+        body, // Texto largo que aparecerá al expandir la notificación
+        contentTitle:
+            title //'🛍️ ¡Oferta Exclusiva Hoy!', // Título visible al expandir
+        //   summaryText: '🔥 Descuentos increíbles disponibles', // Línea inferior
+        );
     final androidChannel = AndroidNotificationDetails(
       'orders_channel',
       'Order Notifications',
@@ -140,7 +142,7 @@ class NotificationsService {
       playSound: true,
       setAsGroupSummary: false,
       styleInformation: bigTextStyle,
-      actions: [
+      /* actions: [
         AndroidNotificationAction(
             'accept_order', // ID de la acción
             'Aceptar', // Título del botón
@@ -149,7 +151,7 @@ class NotificationsService {
             'view_order', // ID de la acción
             'Ver', // Título del botón
             showsUserInterface: true),
-      ],
+      ],*/
     );
 
     final iOSChannel = DarwinNotificationDetails();
@@ -158,7 +160,7 @@ class NotificationsService {
 
   // Mostrar una notificación con acción
   Future<void> showOrderNotification({
-    required int id,
+    int? id,
     required String title,
     required String body,
     required String payload,
@@ -166,10 +168,10 @@ class NotificationsService {
     if (!_isInitialized) await initNotification();
     try {
       await notificationsPlugin.show(
-        id,
+        id!,
         title,
         body,
-        notificationDetailsWithActions(body: body),
+        notificationDetailsWithActions(body: body, title: title),
         payload: payload, // Verifica que el payload se pase correctamente
       );
     } catch (e) {

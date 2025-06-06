@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class Ordenes extends StatefulWidget {
@@ -18,6 +19,7 @@ class Ordenes extends StatefulWidget {
 }
 
 class _OrdenesState extends State<Ordenes> {
+  String fechaActual = DateFormat('dd/MM/yyyy').format(DateTime.now());
   @override
   void initState() {
     super.initState();
@@ -50,7 +52,7 @@ class _OrdenesState extends State<Ordenes> {
                 child: Column(
                   children: [
                     Text(
-                      "Hoy - 02/10/2025",
+                      fechaActual,
                       style: GoogleFonts.manrope(fontSize: 14.sp),
                     ),
                     SizedBox(

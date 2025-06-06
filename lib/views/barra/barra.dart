@@ -14,6 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BarraNavegacion extends StatefulWidget {
   const BarraNavegacion({Key? key}) : super(key: key);
@@ -48,14 +49,15 @@ class _BarraNavegacionState extends State<BarraNavegacion> {
   @override
   Widget build(BuildContext context) {
     final notificacion = context.watch<NotificacionProvider>();
-
+    print("....BARRITA");
     return Scaffold(
       bottomNavigationBar: ConvexAppBar.badge(
-        notificacion.yaLeido
-            ? {} // Si ya fue leído, no se muestra el badge
-            : {
-                3: '${notificacion.allnotifycliente?.length ?? 0}',
-              },
+        // Si ya fue leído, no se muestra el badge
+        notificacion.cant > 0
+            ? {
+                3: '${notificacion.cant}',
+              }
+            : {},
         style: TabStyle.reactCircle,
         //  curveSize: 2.0,
         badgeMargin: EdgeInsets.only(bottom: 18, left: 20),

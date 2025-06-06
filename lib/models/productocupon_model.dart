@@ -3,7 +3,7 @@ class ProductoCuponModel {
   String? nombre;
   String? descripcion;
   List<String> foto;
-  int valoracion;
+  double valoracion;
   String? tipo_empaque;
   int? cantidad;
   String? unidadmedida;
@@ -26,7 +26,7 @@ class ProductoCuponModel {
       nombre: json['nombre'],
       descripcion: json['descripcion'],
       foto: List<String>.from(json['foto']),
-      valoracion: json['valoracion'],
+      valoracion: (json['valoracion'] as num).toDouble(),
       tipo_empaque: json['tipo_empaque'],
       cantidad: json['cantidad_unidad'],
       unidadmedida: json['unidad_medida'],

@@ -19,6 +19,47 @@ class CarritoProvider extends ChangeNotifier {
   double sumatotalPedido = 0;
   String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
+  Future<void> postCalificacion(
+      int? cliente, dynamic item, int idgenerico, double? calificacion) async {
+    try {
+      final body = {
+        "cliente_id": cliente,
+        "calificacion": calificacion ?? 0,
+      };
+
+      print("...BODY $cliente $item $idgenerico $calificacion");
+      // Detecta si es producto o promoción por tipo de modelo
+      if (item is ProductoModel) {
+        print("...soy producto");
+        body["producto_id"] = idgenerico;
+      } else if (item is PromocionModel) {
+        print("soo prpomoooo");
+        body["promocion_id"] = idgenerico;
+      } else {
+        print("Tipo de item no reconocido");
+        return;
+      }
+      print("body nuevo $body");
+      var res = await http.post(
+        Uri.parse("$microUrl/calificacion"),
+        headers: {'Content-type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (res.statusCode == 201) {
+        var data = jsonDecode(res.body);
+        print(".....CALIFICACIÓN REGISTRADA");
+        print(data);
+        notifyListeners();
+      } else {
+        print("Error al registrar calificación: ${res.body}");
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error en la petición: $e");
+    }
+  }
+
   void agregarProducto(dynamic producto) {
     if (producto is ProductoModel) {
       final yaExiste = _productoN.any((p) => p.id == producto.id);

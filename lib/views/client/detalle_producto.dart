@@ -1,6 +1,9 @@
+import 'package:app2025v2/models/producto_model.dart';
 import 'package:app2025v2/models/promocion_model.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
 import 'package:app2025v2/providers/detalleproducto_provider.dart';
+import 'package:app2025v2/providers/pedido_provider.dart';
 import 'package:app2025v2/views/client/components/opiniones.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
@@ -19,10 +22,11 @@ class DetalleProducto extends StatefulWidget {
 
 class _DetalleProductoState extends State<DetalleProducto> {
   int contador = 1;
+  double _calificacion = 3;
 
   @override
   Widget build(BuildContext context) {
-    final productogenerico = context.watch<DetalleProductoProvider>();
+    final productogenerico = context.watch<DetalleProductoProvider>().item;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -92,13 +96,13 @@ class _DetalleProductoState extends State<DetalleProducto> {
             children: [
               Text.rich(TextSpan(children: [
                 TextSpan(
-                    text: productogenerico.item is PromocionModel
+                    text: productogenerico is PromocionModel
                         ? "Promoción\n"
                         : null,
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w200, fontSize: 50.sp)),
                 TextSpan(
-                    text: "${productogenerico.item.nombre}",
+                    text: "${productogenerico.nombre}",
                     style: GoogleFonts.manrope(
                         fontWeight: FontWeight.bold, fontSize: 50.sp))
               ])),
@@ -112,7 +116,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     //color: Colors.amber,
                     image: DecorationImage(
                   fit: BoxFit.contain,
-                  image: NetworkImage('${productogenerico.item?.fotos[0]}'),
+                  image: NetworkImage('${productogenerico?.fotos[0]}'),
                 )),
               ),
               SizedBox(
@@ -121,13 +125,13 @@ class _DetalleProductoState extends State<DetalleProducto> {
               Container(
                 height: 36.h,
                 child: Row(
-                  mainAxisAlignment: productogenerico.item.descuento > 0
+                  mainAxisAlignment: productogenerico.descuento > 0
                       ? MainAxisAlignment.spaceBetween
                       : MainAxisAlignment.spaceEvenly,
                   children: [
                     Text.rich(TextSpan(children: [
                       TextSpan(
-                          text: 'S/.${productogenerico.item?.precio} PEN/',
+                          text: 'S/.${productogenerico?.precio} PEN/',
                           style: GoogleFonts.manrope(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -139,7 +143,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                               fontWeight: FontWeight.w300,
                               color: Color.fromRGBO(1, 37, 255, 1)))*/
                     ])),
-                    productogenerico.item.descuento > 0
+                    productogenerico?.descuento > 0
                         ? Container(
                             height: 36.h,
                             padding: EdgeInsets.only(left: 8, right: 8),
@@ -148,7 +152,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                                 borderRadius: BorderRadius.circular(20.r)),
                             child: Center(
                               child: Text(
-                                "S/.${productogenerico.item?.descuento} DCTO",
+                                "S/.${productogenerico?.descuento} DCTO",
                                 style: GoogleFonts.manrope(
                                     color: Colors.white, fontSize: 15.sp),
                               ),
@@ -156,7 +160,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           )
                         : SizedBox.shrink(),
                     Text(
-                      "Reg: S/.${productogenerico.item.precio_regular} PEN",
+                      "Reg: S/.${productogenerico?.precio_regular} PEN",
                       style: GoogleFonts.manrope(
                         color: const Color.fromARGB(255, 136, 136, 136),
                         fontSize: 15.sp,
@@ -186,8 +190,8 @@ class _DetalleProductoState extends State<DetalleProducto> {
                         IconButton(
                             onPressed: () {
                               setState(() {
-                                if (productogenerico.item.cantidad > 1) {
-                                  productogenerico.item.cantidad--;
+                                if (productogenerico.cantidad > 1) {
+                                  productogenerico.cantidad--;
                                 }
                               });
                             },
@@ -199,7 +203,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              "${productogenerico.item.cantidad}",
+                              "${productogenerico.cantidad}",
                               style: GoogleFonts.manrope(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14.sp,
@@ -210,8 +214,8 @@ class _DetalleProductoState extends State<DetalleProducto> {
                         IconButton(
                             onPressed: () {
                               setState(() {
-                                if (productogenerico.item.cantidad < 99) {
-                                  productogenerico.item.cantidad++;
+                                if (productogenerico.cantidad < 99) {
+                                  productogenerico.cantidad++;
                                 }
                               });
                             },
@@ -233,7 +237,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                     child: ElevatedButton(
                       onPressed: () {
                         Provider.of<CarritoProvider>(context, listen: false)
-                            .agregarProducto(productogenerico.item);
+                            .agregarProducto(productogenerico);
                       },
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -298,7 +302,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
-                  "${productogenerico.item.descripcion}",
+                  "${productogenerico.descripcion}",
                   style: GoogleFonts.manrope(
                     fontSize: 14.sp,
                     color: Colors.grey.shade700,
@@ -323,7 +327,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                       //height: 24.h,
                       width: 54.w,
                       child: Text(
-                        "${productogenerico.item?.valoracion}",
+                        "${productogenerico?.valoracion}",
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           fontSize: 34.sp,
@@ -338,7 +342,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                       children: [
                         RatingBar.builder(
                           itemSize: 22.sp,
-                          initialRating: productogenerico.item.valoracion,
+                          initialRating: productogenerico.valoracion ?? 5.0,
                           minRating: 1,
                           unratedColor: Colors.black,
                           direction: Axis.horizontal,
@@ -354,7 +358,7 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           },
                         ),
                         Text(
-                          "${productogenerico.item.totalclientecalificacion} Opiniones",
+                          "${productogenerico.totalclientecalificacion} Opiniones",
                           style: GoogleFonts.manrope(
                               fontSize: 15.sp, color: Colors.grey),
                         ),
@@ -368,7 +372,120 @@ class _DetalleProductoState extends State<DetalleProducto> {
                           color: Colors.grey,
                         ),
                         TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return Dialog(
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                    child: Container(
+                                      height: 1.sh / 2.1,
+                                      padding: EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            height: 120.w,
+                                            width: 120.w,
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                fit: BoxFit.contain,
+                                                image: AssetImage(
+                                                    'lib/assets/imagenes/felicitaciones.png'),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 20),
+                                          Text(
+                                            "Calificación",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.manrope(
+                                              color:
+                                                  Color.fromRGBO(1, 37, 255, 1),
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 20.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10.h),
+                                          Text(
+                                            "¿Cómo calificarías este producto?",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.manrope(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 16.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 20.h),
+                                          RatingBar.builder(
+                                            initialRating: _calificacion,
+                                            minRating: 1,
+                                            direction: Axis.horizontal,
+                                            allowHalfRating: true,
+                                            itemCount: 5,
+                                            itemSize: 40.sp,
+                                            itemPadding: EdgeInsets.symmetric(
+                                                horizontal: 4.0),
+                                            unratedColor: Colors.grey[300],
+                                            itemBuilder: (context, _) => Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                            ),
+                                            onRatingUpdate: (rating) {
+                                              _calificacion = rating;
+                                            },
+                                          ),
+                                          SizedBox(height: 30.h),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              side: BorderSide(
+                                                  color: Color.fromRGBO(
+                                                      1, 37, 255, 1)),
+                                            ),
+                                            child: Text(
+                                              "Continuar",
+                                              style: GoogleFonts.manrope(
+                                                fontWeight: FontWeight.w500,
+                                                color: Color.fromRGBO(
+                                                    1, 37, 255, 1),
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              final cliente =
+                                                  Provider.of<ClienteProvider>(
+                                                          context,
+                                                          listen: false)
+                                                      .clienteActual;
+                                              final idcliente =
+                                                  cliente?.cliente.id;
+
+                                              print(
+                                                  "...claificacion $_calificacion");
+                                              await Provider.of<
+                                                          CarritoProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .postCalificacion(
+                                                      idcliente,
+                                                      productogenerico,
+                                                      productogenerico.id,
+                                                      _calificacion);
+                                              Navigator.of(context).pop();
+                                              // Aquí puedes usar `_calificacion` para guardar el voto
+                                              print(
+                                                  "El usuario votó con $_calificacion estrellas.");
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                             child: Text(
                               "votar",
                               style: GoogleFonts.manrope(
@@ -385,15 +502,17 @@ class _DetalleProductoState extends State<DetalleProducto> {
                 height: 20.h,
               ),
               Container(
-                height: productogenerico.item.totalclientecalificacion > 1
-                    ? 200.h
+                height: productogenerico.totalclientecalificacion > 1
+                    ? 300.h
                     : 100.h,
                 //color: Colors.amber,
                 child: ListView.builder(
-                    itemCount: productogenerico.item.calificaciones.length,
+                    itemCount: productogenerico.calificaciones.length,
                     itemBuilder: (context, index) {
+                      print(
+                          ".....TOTAL CALIFICACIONES ${productogenerico.calificaciones.length}");
                       final productogenericoActual =
-                          productogenerico.item.calificaciones[index];
+                          productogenerico.calificaciones[index];
                       return Column(
                         children: [
                           opiniones(

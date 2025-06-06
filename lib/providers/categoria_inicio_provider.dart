@@ -50,11 +50,11 @@ class CategoriaInicioProvider extends ChangeNotifier {
       var res = await http.get(Uri.parse(
           '$microurl/categoria/${categoriaId}/${ubicacionClienteId}')); // ESTE ENDPOINT LIMITA A 2 SUBCATEGORIAS EN EL HOME PARA NO ABRUMAR AL CLIENTE
       if (res.statusCode == 200) {
-        print("....CAT CAT ${res.body}");
+        //print("....CAT CAT ${res.body}");
         var data = jsonDecode(res.body);
         _categoriaSubcategoriaModel = CategoriaSubcategoriaModel.fromJson(data);
-        print("//////// -------- CAT --------- //////////");
-        print(data);
+        // print("//////// -------- CAT --------- //////////");
+        //print(data);
         notifyListeners();
       }
       notifyListeners();
@@ -78,6 +78,8 @@ class CategoriaInicioProvider extends ChangeNotifier {
         print("..llega la tripa");
         var data = jsonDecode(res.body);
         _categoriaCompleta = CategoriaSubcategoriaModel.fromJson(data);
+        print("//////// -------- CAT --------- //////////");
+        print(data);
         notifyListeners();
       }
       notifyListeners();
