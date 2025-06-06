@@ -1,4 +1,5 @@
 import 'package:app2025v2/class_config/clase_notificacion.dart';
+import 'package:app2025v2/class_config/socket_central.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
@@ -53,12 +54,14 @@ Future<void> main() async {
   await notificationsService.initNotification(); // Configura las notificaciones
   // final usuarioPrefs = await SharedPreferences.getInstance();
   await initializeDateFormatting('es_ES', null);
-
+  SocketService().connectToSocket(); // Escuchar eventos
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => ClienteProvider()),
       /* ChangeNotifierProvider(
           create: (context) => IniciarappProvider(usuarioPrefs)),*/
+
+      ChangeNotifierProvider(create: (context) => NotificacionProvider()),
       ChangeNotifierProvider(create: (context) => EventoProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaProvider()),
       ChangeNotifierProvider(create: (context) => CategoriaInicioProvider()),
@@ -71,7 +74,6 @@ Future<void> main() async {
       ChangeNotifierProvider(create: (context) => NovedadesProvider()),
       ChangeNotifierProvider(create: (context) => DeliveryProvider()),
       ChangeNotifierProvider(create: (context) => PedidoProvider()),
-      ChangeNotifierProvider(create: (context) => NotificacionProvider()),
     ],
     child: const MyApp(),
   ));

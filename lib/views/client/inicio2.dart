@@ -342,7 +342,7 @@ class _Inicio2State extends State<Inicio2> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<NotificacionProvider>(context, listen: false)
-            .cargarEstadoLeido();
+            .getNotificaciones();
       }
     });
 
@@ -466,17 +466,16 @@ class _Inicio2State extends State<Inicio2> {
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            // crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               // MENSAJES
                               Container(
                                 height: 200.h,
                                 width: 248.w,
-                                //color: Colors.green,
+                                // color: Colors.green,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text.rich(
                                       TextSpan(children: [
@@ -485,7 +484,7 @@ class _Inicio2State extends State<Inicio2> {
                                                 '${banners[_bannerIndex].titulo}\n',
                                             style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 20.sp,
+                                                fontSize: 24.5.sp,
                                                 color: Color.fromRGBO(
                                                     255, 255, 255, 1))),
                                         TextSpan(
@@ -525,7 +524,7 @@ class _Inicio2State extends State<Inicio2> {
                       right: 8.w,
                       child: // IMAGENES
                           Container(
-                        height: 235.h,
+                        height: 245.h,
                         width: 140.w,
                         child: PageView.builder(
                             controller: _bannerController,
@@ -539,7 +538,7 @@ class _Inicio2State extends State<Inicio2> {
                                   image: DecorationImage(
                                     image: NetworkImage(
                                         banners[_bannerIndex].foto),
-                                    fit: BoxFit.fill,
+                                    //fit: BoxFit.fill,
                                   ),
                                 ),
                               );

@@ -138,10 +138,7 @@ Widget pedido(BuildContext context, dynamic item) {
                             itemCount: item.fotos.length,
                             itemBuilder: (context, index) {
                               final fotoactual = item.fotos[index];
-                              print(
-                                  "Pedido ${item.id} tiene ${item.fotos.length} fotos: ${item.fotos}");
 
-                              print(" ->>> cnatidad fotos${item.fotos.length}");
                               return Container(
                                 height: 50.w,
                                 width: 50.w,
@@ -183,7 +180,9 @@ Widget pedido(BuildContext context, dynamic item) {
                   width: 50.w,
                   height: 50.w,
                   decoration: BoxDecoration(
-                      color: Colors.yellowAccent,
+                      color: item.estado == 'pendiente'
+                          ? Colors.yellowAccent
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(50.r)),
                   child: Icon(
                     Icons.timer_outlined,
@@ -199,7 +198,9 @@ Widget pedido(BuildContext context, dynamic item) {
                   width: 50.w,
                   height: 50.w,
                   decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: item.estado == 'en proceso'
+                          ? Colors.yellowAccent
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(50.r)),
                   child: Icon(
                     Icons.delivery_dining,
@@ -215,7 +216,9 @@ Widget pedido(BuildContext context, dynamic item) {
                   width: 50.w,
                   height: 50.w,
                   decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: item.estado == 'entregado'
+                          ? Colors.yellowAccent
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(50.r)),
                   child: Icon(
                     Icons.check,
@@ -232,79 +235,100 @@ Widget pedido(BuildContext context, dynamic item) {
             Container(
                 width: 1.sw,
                 child: ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Dialog(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            child: Container(
-                              height: 1.sh / 2.5,
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      height: 120.w,
-                                      width: 120.w,
-                                      child: Icon(
-                                        Icons.cancel_outlined,
-                                        color: Colors.red,
-                                        size: 120.sp,
+                    onPressed: (item.estado != 'entregado' &&
+                            item.estado != 'anulado')
+                        ? () async {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Dialog(
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15)),
+                                  child: Container(
+                                    height: 1.sh / 2.5,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            height: 120.w,
+                                            width: 120.w,
+                                            child: Icon(
+                                              Icons.cancel_outlined,
+                                              color: Colors.red,
+                                              size: 120.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 20),
+                                          Text(
+                                            "¿Deseas anular el pedido?",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.manrope(
+                                              color:
+                                                  Color.fromRGBO(1, 37, 255, 1),
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 20.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 20.h),
+                                          SizedBox(height: 30.h),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              side: BorderSide(
+                                                  color: Color.fromRGBO(
+                                                      1, 37, 255, 1)),
+                                            ),
+                                            child: Text(
+                                              "Continuar",
+                                              style: GoogleFonts.manrope(
+                                                fontWeight: FontWeight.w500,
+                                                color: Color.fromRGBO(
+                                                    1, 37, 255, 1),
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                      ),
+                                                    );
+                                                  });
+                                              await Provider.of<PedidoProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .putEstadoAnulado(item.id);
+                                              Navigator.pop(context);
+
+                                              Navigator.of(context).pop();
+
+                                              // carritProvider.deleteCarrito();
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    /* Icon(
-                        Icons.check_circle_outline,
-                        size: 60.sp,
-                        color: Colors.lightGreen,
-                      ),*/
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "¿Deseas anular el pedido?",
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.manrope(
-                                        color: Color.fromRGBO(1, 37, 255, 1),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 20.sp,
-                                      ),
-                                    ),
-                                    SizedBox(height: 20.h),
-                                    SizedBox(height: 30.h),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        side: BorderSide(
-                                            color:
-                                                Color.fromRGBO(1, 37, 255, 1)),
-                                      ),
-                                      child: Text(
-                                        "Continuar",
-                                        style: GoogleFonts.manrope(
-                                          fontWeight: FontWeight.w500,
-                                          color: Color.fromRGBO(1, 37, 255, 1),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                        // carritProvider.deleteCarrito();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        : null,
                     style: ElevatedButton.styleFrom(
                         backgroundColor:
                             const Color.fromARGB(255, 255, 255, 255),
                         side: BorderSide(
-                            color: const Color.fromARGB(255, 255, 54, 54),
+                            color: item.estado == 'anulado' ||
+                                    item.estado == 'entregado'
+                                ? Colors.grey
+                                : Color.fromARGB(255, 255, 54, 54),
                             width: 1),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -316,13 +340,19 @@ Widget pedido(BuildContext context, dynamic item) {
                           "Anular pedido",
                           style: GoogleFonts.manrope(
                               fontSize: 14.sp,
-                              color: const Color.fromARGB(255, 255, 54, 54)),
+                              color: item.estado == 'anulado' ||
+                                      item.estado == 'entregado'
+                                  ? Colors.grey
+                                  : Color.fromARGB(255, 255, 54, 54)),
                         ),
                         SizedBox(
                           width: 10.w,
                         ),
                         Icon(Icons.cancel_outlined,
-                            color: const Color.fromARGB(255, 255, 54, 54))
+                            color: item.estado == 'anulado' ||
+                                    item.estado == 'entregado'
+                                ? Colors.grey
+                                : Color.fromARGB(255, 255, 54, 54))
                       ],
                     )))
           ],

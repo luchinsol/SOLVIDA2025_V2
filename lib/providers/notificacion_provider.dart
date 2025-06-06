@@ -11,37 +11,31 @@ class NotificacionProvider extends ChangeNotifier {
   List<NotificacionesModel>? get allnotifycliente => _notificaciones;
   String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
-  bool _leido = false;
+  int _cant = 0;
+  int get cant => _cant;
 
-  bool get yaLeido => _leido;
-
-  Future<void> cargarEstadoLeido() async {
-    final prefs = await SharedPreferences.getInstance();
-    _leido = prefs.getBool('notificaciones_leido') ?? false;
+  void incrementarContador() {
+    _cant++;
     notifyListeners();
   }
 
-  Future<void> marcarComoLeido() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificaciones_leido', true);
-    _leido = true;
+  void resetContador() {
+    _cant = 0;
     notifyListeners();
   }
 
   Future<void> getNotificaciones() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       var res = await http.get(Uri.parse("$microUrl/notificacion_cliente"));
       if (res.statusCode == 200) {
         print(".....entro a notificacion");
         var data = jsonDecode(res.body);
-        _notificaciones =
+        final nuevas =
             (data as List).map((e) => NotificacionesModel.fromJson(e)).toList();
-        // Si llegaron nuevas notificaciones, marcar como no leído
-        if (_notificaciones!.isNotEmpty) {
-          await prefs.setBool('notificaciones_leido', false);
-          _leido = false;
-        }
+
+        _notificaciones = nuevas;
+        _cant = nuevas.length;
+        //  _contador = _contador + 1;
         notifyListeners();
       }
       notifyListeners();

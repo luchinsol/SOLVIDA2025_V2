@@ -17,6 +17,23 @@ class PedidoProvider extends ChangeNotifier {
 
   String microUrl = dotenv.env['MICRO_URL'] ?? '';
 
+  Future<void> putEstadoAnulado(int id) async {
+    try {
+      print(",,,anulando");
+      print(id);
+      var res = await http.put(Uri.parse("$microUrl/pedido_anulado/${id}"),
+          headers: {"Content-type": "application/json"});
+      if (res.statusCode == 200) {
+        var data = jsonDecode(res.body);
+        print("...anulado ");
+        notifyListeners();
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error en la peticion : $e");
+    }
+  }
+
   Future<void> postPedido({
     int? clienteId,
     required String fecha,
@@ -76,8 +93,7 @@ class PedidoProvider extends ChangeNotifier {
 
       if (res.statusCode == 200) {
         var data = jsonDecode(res.body);
-        print(".......HISTORIAL");
-        print(data);
+
         _historial =
             (data as List).map((e) => HistorialModel.fromJson(e)).toList();
         /* final List<dynamic> data = jsonDecode(res.body);
@@ -87,6 +103,7 @@ class PedidoProvider extends ChangeNotifier {
       } else {
         print("Error al obtener historial: ${res.body}");
       }
+      notifyListeners();
     } catch (e) {
       print("Error en la petición: $e");
     }
