@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "1077476958235-nqd4il7ubetl9r214ptd7nm8sh49bp1n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aguasol.appsol_final",
+            "certificate_hash": "5228711c217d1c6459bf6ee95bc2c8def63efe20"
+          }
+        },
+        {
           "client_id": "1077476958235-p4on0q196hmueshfu1rf8d73co9g5c43.apps.googleusercontent.com",
           "client_type": 3
         }
