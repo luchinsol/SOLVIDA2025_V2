@@ -1,5 +1,6 @@
 import 'package:app2025v2/class_config/clase_notificacion.dart';
 import 'package:app2025v2/class_config/socket_central.dart';
+import 'package:app2025v2/providers/atencioncliente_provider.dart';
 import 'package:app2025v2/providers/carrito_provider.dart';
 import 'package:app2025v2/providers/categoria_inicio_provider.dart';
 import 'package:app2025v2/providers/categoria_provider.dart';
@@ -74,6 +75,7 @@ Future<void> main() async {
       ChangeNotifierProvider(create: (context) => NovedadesProvider()),
       ChangeNotifierProvider(create: (context) => DeliveryProvider()),
       ChangeNotifierProvider(create: (context) => PedidoProvider()),
+      ChangeNotifierProvider(create: (context) => AtencionClienteProvider()),
     ],
     child: const MyApp(),
   ));

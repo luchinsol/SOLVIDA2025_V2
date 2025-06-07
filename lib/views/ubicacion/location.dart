@@ -1,3 +1,4 @@
+import 'package:app2025v2/models/distritos_model.dart';
 import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:app2025v2/providers/ubicacion_provider.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +23,26 @@ class _LocationState extends State<Location> {
   String? _selectedDistrito; // Agrega esto a tu clase
   final _formKey = GlobalKey<FormState>();
 
+  int? _selectedDepartamentoId;
+
   @override
   void initState() {
     super.initState();
+    /* final ubicacion =
+        Provider.of<UbicacionProvider>(context, listen: false).getUbicaiontemp;
+    _direccion = TextEditingController(text: ubicacion?.direccion);
+    _etiqueta = TextEditingController(text: ubicacion?.etiqueta);
+    _manzana = TextEditingController(text: ubicacion?.numero_manzana);
+    _selectedDepartamento = ubicacion?.departamento;
+    _selectedDistrito = ubicacion?.distrito;*/
+    final provider = Provider.of<UbicacionProvider>(context, listen: false);
+    provider.cargarDepartamentos();
+    final ubicacionTemp = provider.getUbicaiontemp;
+    if (ubicacionTemp != null) {
+      _selectedDepartamento = ubicacionTemp.departamento;
+      _selectedDistrito = ubicacionTemp.distrito;
+    }
+
     final ubicacion =
         Provider.of<UbicacionProvider>(context, listen: false).getUbicaiontemp;
     _direccion = TextEditingController(text: ubicacion?.direccion);
@@ -36,6 +54,7 @@ class _LocationState extends State<Location> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<UbicacionProvider>();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
@@ -89,16 +108,12 @@ class _LocationState extends State<Location> {
                     children: [
                       DropdownButtonFormField<String>(
                         value: _selectedDepartamento,
-                        items: [
-                          'Arequipa',
-                          'Moquegua',
-                          'Lima'
-                        ] // ENDPOINT SOLO PARA DEPARTAMENTOS
-                            .map((departamento) => DropdownMenuItem(
-                                  value: departamento,
-                                  child: Text(departamento),
-                                ))
-                            .toList(),
+                        items: provider.departamentos.map((departamento) {
+                          return DropdownMenuItem(
+                            value: departamento.nombre,
+                            child: Text(departamento.nombre),
+                          );
+                        }).toList(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Por favor selecciona un departamento';
@@ -108,6 +123,17 @@ class _LocationState extends State<Location> {
                         onChanged: (value) {
                           setState(() {
                             _selectedDepartamento = value;
+                            _selectedDistrito = null;
+                            final depto = provider.departamentos.firstWhere(
+                              (d) => d.nombre == value,
+                              orElse: () =>
+                                  DepartamentoModel(id: -1, nombre: ''),
+                            );
+
+                            if (depto.id != -1) {
+                              _selectedDepartamentoId = depto.id;
+                              provider.cargarDistritos(depto.id);
+                            }
                           });
                         },
                         decoration: InputDecoration(
@@ -155,12 +181,12 @@ class _LocationState extends State<Location> {
                   ),*/
                       DropdownButtonFormField<String>(
                         value: _selectedDistrito,
-                        items: ['Sachaca', 'Mariano Melgar']
-                            .map((departamento) => DropdownMenuItem(
-                                  value: departamento,
-                                  child: Text(departamento),
-                                ))
-                            .toList(),
+                        items: provider.distritos.map((distrito) {
+                          return DropdownMenuItem(
+                            value: distrito.nombre,
+                            child: Text(distrito.nombre),
+                          );
+                        }).toList(),
                         onChanged: (value) {
                           setState(() {
                             _selectedDistrito = value;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app2025v2/models/distritos_model.dart';
 import 'package:app2025v2/models/ubicacion_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,6 +21,8 @@ class UbicacionProvider extends ChangeNotifier {
   int? get idSeleccionado => _idSeleccionado;
   bool _dentrodelarea = false;
   bool get dentrodeArea => _dentrodelarea;
+  List<DepartamentoModel> departamentos = [];
+  List<DistritoModel> distritos = [];
 
   Future<void> seleccionarUbicacion(int id) async {
     _idSeleccionado = id;
@@ -32,6 +35,42 @@ class UbicacionProvider extends ChangeNotifier {
     // Automáticamente verificar si está fuera de la zona
     await verificacionUbicacionSeleccionada(id);
     notifyListeners();
+  }
+
+  Future<void> cargarDepartamentos() async {
+    try {
+      final url = Uri.parse("$microUrl/alldepartamentos");
+      var res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        List<dynamic> data = jsonDecode(res.body);
+        departamentos =
+            data.map((item) => DepartamentoModel.fromJson(item)).toList();
+        print(data);
+        notifyListeners();
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error cargando departamentos: $e");
+    }
+  }
+
+  // Cargar distritos por departamento
+  Future<void> cargarDistritos(int departamentoId) async {
+    try {
+      final url = Uri.parse("$microUrl/alldistritos/$departamentoId");
+      var res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        List<dynamic> data = jsonDecode(res.body);
+        distritos = data.map((item) => DistritoModel.fromJson(item)).toList();
+        print(data);
+        notifyListeners();
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error cargando distritos: $e");
+    }
   }
 
   Future<void> verificacionUbicacionSeleccionada(int idUbicacion) async {
