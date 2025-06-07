@@ -1,7 +1,12 @@
+//soporte.dart
+import 'package:app2025v2/providers/atencioncliente_provider.dart';
+import 'package:app2025v2/providers/cliente_provider.dart';
+import 'package:app2025v2/providers/pedido_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class Soporte extends StatefulWidget {
   const Soporte({Key? key}) : super(key: key);
@@ -12,9 +17,26 @@ class Soporte extends StatefulWidget {
 
 class _SoporteState extends State<Soporte> {
   TextEditingController _asunto = TextEditingController();
+  TextEditingController _descripcion = TextEditingController();
+
+  String? _asuntoError;
+  String? _descripcionError;
+
+  @override
+  void dispose() {
+    _asunto.dispose();
+    _descripcion.dispose();
+    super.dispose();
+  }
+
+  int contarPalabras(String texto) {
+    return texto.trim().isEmpty ? 0 : texto.trim().split(' ').length;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final atencionCliente =
+        Provider.of<AtencionClienteProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -68,20 +90,44 @@ class _SoporteState extends State<Soporte> {
                                 fontSize: 11.sp),
                             filled: true,
                             fillColor: Colors.grey.shade200,
+                            errorText: _asuntoError,
+                            errorStyle: TextStyle(fontSize: 9.sp),
                             //errorText: _errorText,
                             /*helperText: _errorText == null
                                           ? "Puedes usar letras y números"
                                           : null,*/
                           ),
+                          onChanged: (value) {
+                            // Validación en tiempo real opcional
+                            if (contarPalabras(value) > 10) {
+                              setState(() {
+                                _asuntoError = 'Máximo 10 palabras';
+                              });
+                            } else {
+                              setState(() {
+                                _asuntoError = null;
+                              });
+                            }
+                          },
                           // onChanged: _validateUsername,
                         ),
                       ),
                     ],
                   ),
+                  if (_asuntoError != null)
+                    Padding(
+                      padding: EdgeInsets.only(left: 40.w, top: 4.h),
+                      child: Text(
+                        _asuntoError!,
+                        style: GoogleFonts.manrope(
+                            color: Colors.red, fontSize: 9.sp),
+                      ),
+                    ),
                   SizedBox(
                     height: 19.h,
                   ),
                   TextFormField(
+                    controller: _descripcion,
                     maxLines: 10, // Número de líneas visibles
                     decoration: InputDecoration(
                       labelText: 'Descripción del problema',
@@ -97,12 +143,32 @@ class _SoporteState extends State<Soporte> {
                           borderRadius: BorderRadius.circular(15)),
                       filled: true,
                       fillColor: Colors.grey.shade200,
+                      errorText: _descripcionError,
+                      errorStyle: TextStyle(fontSize: 9.sp),
                     ),
                     onChanged: (value) {
                       // Guarda o procesa el valor si es necesario
-                      print('Descripción: $value');
+                      //print('Descripción: $value');
+                      if (contarPalabras(value) > 20) {
+                        setState(() {
+                          _descripcionError = 'Máximo 20 palabras';
+                        });
+                      } else {
+                        setState(() {
+                          _descripcionError = null;
+                        });
+                      }
                     },
                   ),
+                  if (_descripcionError != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: 4.h),
+                      child: Text(
+                        _descripcionError!,
+                        style: GoogleFonts.manrope(
+                            color: Colors.red, fontSize: 9.sp),
+                      ),
+                    ),
                   SizedBox(
                     height: 20.h,
                   ),
@@ -110,22 +176,37 @@ class _SoporteState extends State<Soporte> {
                     width: 1.sw,
                     height: 50.h,
                     child: ElevatedButton(
-                        onPressed: () {
-                          // LLAMAMOS A LA FUNCIÓN
-                          /* _registermanual(
-                          _controllernombres.text,
-                          _controllerapellidos.text,
-                          _controllertelefono.text,
-                          _controlleremail.text,
-                          _controllerpass.text);*/
+                        onPressed: () async {
+                          // Validar antes de enviar
+                          final palabrasAsunto = contarPalabras(_asunto.text);
+                          final palabrasDesc =
+                              contarPalabras(_descripcion.text);
 
-                          // LIMPIAR FORMULARIO
-                          /*_formKey.currentState!.reset();
-                      _controllerapellidos.clear();
-                      _controllernombres.clear();
-                      _controllertelefono.clear();
-                      _controlleremail.clear();
-                      _controllerpass.clear();*/
+                          setState(() {
+                            _asuntoError = palabrasAsunto > 10
+                                ? 'Máximo 10 palabras'
+                                : null;
+
+                            _descripcionError =
+                                palabrasDesc > 20 ? 'Máximo 20 palabras' : null;
+                          });
+
+                          if (_asuntoError == null &&
+                              _descripcionError == null) {
+                            final cliente = context
+                                .read<ClienteProvider>()
+                                .clienteActual
+                                ?.cliente;
+                            final id = cliente?.id;
+
+                            await atencionCliente.enviarSolicitudSoporte(
+                              id!,
+                              _asunto.text,
+                              _descripcion.text,
+                            );
+                            _asunto.clear();
+                            _descripcion.clear();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                             shadowColor:
